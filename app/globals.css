@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-main: #eae7e1;
+    --bg-card: #f7f5f0;
+    --text-primary: #121212;
+    --text-muted: #555555;
+    --border-dark: #121212;
+    --border-subtle: #d3cecb;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: var(--font-sans), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Custom heart pointer replaces the native cursor across the whole site */
+*,
+*::before,
+*::after {
+  cursor: none !important;
+}
+
+.font-serif {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+.font-mono {
+  font-family: var(--font-mono), monospace;
+}
+
+.font-sans {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Custom dashed stamp border effect */
+.stamp-container {
+  background: white;
+  border: 2px dashed #121212;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.stamp-edge {
+  position: relative;
+  background: white;
+  border: 2px dashed #121212;
+}
+
+/* Post card dot-line headers */
+.card-header-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: #121212;
+  letter-spacing: 0.05em;
+}
+
+.card-header-line::before {
+  content: "ooo";
+  letter-spacing: 2px;
+  font-weight: 600;
+}
+
+.card-header-line-center {
+  flex: 1;
+  height: 0;
+  border-bottom: 1px dashed #777777;
+}
+
+/* Card Title Highlight Effect on Box Hover */
+.highlight-text-on-hover {
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding-left: 3px;
+  padding-right: 3px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+.group:hover .highlight-text-on-hover {
+  background-color: #f3c276;
+  color: #121212;
+}
+
+
+
+/* Giant hero title text effect */
+.hero-reado-title {
+  font-family: var(--font-sans);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 0.85;
+  text-transform: uppercase;
+}
+
+
+/* Category ticker styling */
+.ticker-bar {
+  background-color: #0d0d0d;
+  color: #ffffff;
+}
+
+/* Custom button hover effects */
+.btn-black {
+  background-color: #121212;
+  color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.btn-black:hover {
+  background-color: #2b2b2b;
+  transform: translateY(-1px);
+}
+
