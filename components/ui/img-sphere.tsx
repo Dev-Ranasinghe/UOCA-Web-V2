@@ -1,41 +1,19 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X } from 'lucide-react';
+import React, { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import { X } from "lucide-react";
 
 /**
- * SphereImageGrid - Interactive 3D Image Sphere Component
+ * SphereImageGrid: images arranged on a 3D sphere (Fibonacci distribution) that you can drag, with momentum,
+ * optional auto-rotation, hover enlargement and a click-to-enlarge modal.
  *
- * A React TypeScript component that displays images arranged in a 3D sphere layout.
- * Images are distributed using Fibonacci sphere distribution for optimal coverage.
- * Supports drag-to-rotate, momentum physics, auto-rotation, and modal image viewing.
+ * Performance: the rotation lives in refs and every frame writes `transform`/`opacity` straight to the image nodes,
+ * so React never re-renders while it spins (it used to `setState` about 60 times a second and re-layout 60 nodes with
+ * left/top/width/height). The loop only runs while the sphere is on screen, in a visible tab, and is paced by elapsed
+ * time so the speed does not depend on the frame rate.
  *
- * Features:
- * - 3D sphere layout with Fibonacci distribution for even image placement
- * - Smooth drag-to-rotate interaction with momentum physics
- * - Auto-rotation capability with configurable speed
- * - Dynamic scaling based on position and visibility
- * - Collision detection to prevent image overlap
- * - Modal view for enlarged image display
- * - Touch support for mobile devices
- * - Customizable appearance and behavior
- * - Performance optimized with proper z-indexing and visibility culling
- *
- * Usage:
- * ```tsx
- * <SphereImageGrid
- *   images={imageArray}
- *   containerSize={600}
- *   sphereRadius={200}
- *   autoRotate={true}
- *   dragSensitivity={0.8}
- * />
- * ```
+ * Touch: vertical swipes scroll the page (`touch-action: pan-y`); horizontal drags rotate. Mouse drags rotate freely.
  */
-
-// ==========================================
-// TYPES & INTERFACES
-// ==========================================
 
 export interface Position3D {
   x: number;
@@ -44,8 +22,8 @@ export interface Position3D {
 }
 
 export interface SphericalPosition {
-  theta: number;  // Azimuth angle in degrees
-  phi: number;    // Polar angle in degrees
+  theta: number; // Azimuth angle in degrees
+  phi: number; // Polar angle in degrees
   radius: number; // Distance from center
 }
 
@@ -80,53 +58,51 @@ export interface SphereImageGridProps {
   className?: string;
 }
 
-interface RotationState {
-  x: number;
-  y: number;
-  z: number;
+const toRad = (degrees: number) => degrees * (Math.PI / 180);
+
+function normalizeAngle(angle: number) {
+  while (angle > 180) angle -= 360;
+  while (angle < -180) angle += 360;
+  return angle;
 }
 
-interface VelocityState {
-  x: number;
-  y: number;
-}
+/** Fibonacci sphere distribution with a little randomness so it never looks like a perfect pattern. */
+function buildSpherePositions(count: number, radius: number): SphericalPosition[] {
+  const positions: SphericalPosition[] = [];
+  const goldenRatio = (1 + Math.sqrt(5)) / 2;
+  const angleIncrement = (2 * Math.PI) / goldenRatio;
 
-interface MousePosition {
-  x: number;
-  y: number;
-}
+  for (let i = 0; i < count; i++) {
+    const t = i / count;
+    const inclination = Math.acos(1 - 2 * t);
+    const azimuth = angleIncrement * i;
 
-// ==========================================
-// CONSTANTS & CONFIGURATION
-// ==========================================
+    let phi = inclination * (180 / Math.PI);
+    let theta = (azimuth * (180 / Math.PI)) % 360;
 
-const SPHERE_MATH = {
-  degreesToRadians: (degrees: number): number => degrees * (Math.PI / 180),
-  radiansToDegrees: (radians: number): number => radians * (180 / Math.PI),
+    // Reach closer to the poles without hitting the mathematical extremes.
+    const poleBonus = Math.pow(Math.abs(phi - 90) / 90, 0.6) * 35;
+    phi = phi < 90 ? Math.max(5, phi - poleBonus) : Math.min(175, phi + poleBonus);
+    phi = 15 + (phi / 180) * 150;
 
-  sphericalToCartesian: (radius: number, theta: number, phi: number): Position3D => ({
-    x: radius * Math.sin(phi) * Math.cos(theta),
-    y: radius * Math.cos(phi),
-    z: radius * Math.sin(phi) * Math.sin(theta)
-  }),
+    theta = (theta + (Math.random() - 0.5) * 20) % 360;
+    phi = Math.max(0, Math.min(180, phi + (Math.random() - 0.5) * 10));
 
-  calculateDistance: (pos: Position3D, center: Position3D = { x: 0, y: 0, z: 0 }): number => {
-    const dx = pos.x - center.x;
-    const dy = pos.y - center.y;
-    const dz = pos.z - center.z;
-    return Math.sqrt(dx * dx + dy * dy + dz * dz);
-  },
-
-  normalizeAngle: (angle: number): number => {
-    while (angle > 180) angle -= 360;
-    while (angle < -180) angle += 360;
-    return angle;
+    positions.push({ theta, phi, radius });
   }
-};
+  return positions;
+}
 
-// ==========================================
-// MAIN COMPONENT
-// ==========================================
+/** Longest a single frame may advance the simulation, so a stalled tab doesn't make the sphere jump. */
+const MAX_STEP_MS = 50;
+/** Auto-rotation alone only changes slowly, so it is drawn at about 30 frames a second. Dragging and momentum run every frame. */
+const IDLE_FRAME_MS = 32;
+
+const subscribeNever = () => () => {};
+/** False on the server and during hydration, true afterwards, without a setState in an effect. */
+function useIsClient() {
+  return useSyncExternalStore(subscribeNever, () => true, () => false);
+}
 
 const SphereImageGrid: React.FC<SphereImageGridProps> = ({
   images = [],
@@ -140,460 +116,271 @@ const SphereImageGrid: React.FC<SphereImageGridProps> = ({
   perspective = 1000,
   autoRotate = false,
   autoRotateSpeed = 0.3,
-  className = ''
+  className = "",
 }) => {
-
-  // ==========================================
-  // STATE & REFS
-  // ==========================================
-
-  const [isMounted, setIsMounted] = useState<boolean>(false);
-  const [rotation, setRotation] = useState<RotationState>({ x: 15, y: 15, z: 0 });
-  const [velocity, setVelocity] = useState<VelocityState>({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const isMounted = useIsClient();
   const [selectedImage, setSelectedImage] = useState<ImageData | null>(null);
-  const [imagePositions, setImagePositions] = useState<SphericalPosition[]>([]);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const lastMousePos = useRef<MousePosition>({ x: 0, y: 0 });
-  const animationFrame = useRef<number | null>(null);
-
-  // ==========================================
-  // COMPUTED VALUES
-  // ==========================================
+  const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const innerRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const rotation = useRef({ x: 15, y: 15 });
+  const velocity = useRef({ x: 0, y: 0 });
+  const drag = useRef({ active: false, x: 0, y: 0, moved: 0 });
+  const hovered = useRef<number | null>(null);
+  const scales = useRef<number[]>([]);
+  /** Set by the effect below so pointer handlers can draw a frame or restart the loop. */
+  const controls = useRef({ render: () => {}, start: () => {} });
+  /** Set by the effect below; the nodes call them from their hover events. */
+  const hoverHandlers = useRef<{ enter: (index: number) => void; leave: (index: number) => void }>({
+    enter: () => {},
+    leave: () => {},
+  }).current;
 
   const actualSphereRadius = sphereRadius || containerSize * 0.5;
   const baseImageSize = containerSize * baseImageScale;
 
-  // ==========================================
-  // UTILITY FUNCTIONS
-  // ==========================================
+  useEffect(() => {
+    if (!isMounted) return;
+    const container = containerRef.current;
+    const count = images.length;
+    if (!container || count === 0) return;
 
-  const generateSpherePositions = useCallback((): SphericalPosition[] => {
-    const positions: SphericalPosition[] = [];
-    const imageCount = images.length;
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    const spin = autoRotate && !reducedMotion;
+    const positions = buildSpherePositions(count, actualSphereRadius);
+    const clamp = (speed: number) => Math.max(-maxRotationSpeed, Math.min(maxRotationSpeed, speed));
 
-    // Use Fibonacci sphere distribution for even coverage
-    const goldenRatio = (1 + Math.sqrt(5)) / 2;
-    const angleIncrement = 2 * Math.PI / goldenRatio;
+    const wx = new Float64Array(count);
+    const wy = new Float64Array(count);
+    const wz = new Float64Array(count);
+    const ws = new Float64Array(count);
+    const shown = new Uint8Array(count);
+    const lastTransform: string[] = new Array(count).fill("");
+    const lastOpacity: string[] = new Array(count).fill("");
+    const lastZ: number[] = new Array(count).fill(NaN);
 
-    for (let i = 0; i < imageCount; i++) {
-      // Fibonacci sphere distribution
-      const t = i / imageCount;
-      const inclination = Math.acos(1 - 2 * t);
-      const azimuth = angleIncrement * i;
+    /** Work out where every image is for the current rotation, then write it to the DOM. */
+    function render() {
+      const rotX = toRad(rotation.current.x);
+      const rotY = toRad(rotation.current.y);
+      const cosY = Math.cos(rotY);
+      const sinY = Math.sin(rotY);
+      const cosX = Math.cos(rotX);
+      const sinX = Math.sin(rotX);
 
-      // Convert to degrees and focus on front hemisphere
-      let phi = inclination * (180 / Math.PI);
-      let theta = (azimuth * (180 / Math.PI)) % 360;
+      for (let i = 0; i < count; i++) {
+        const pos = positions[i];
+        const theta = toRad(pos.theta);
+        const phi = toRad(pos.phi);
+        let x = pos.radius * Math.sin(phi) * Math.cos(theta);
+        let y = pos.radius * Math.cos(phi);
+        let z = pos.radius * Math.sin(phi) * Math.sin(theta);
 
-      // Better pole coverage - reach poles but avoid extreme mathematical issues
-      const poleBonus = Math.pow(Math.abs(phi - 90) / 90, 0.6) * 35; // Moderate boost toward poles
-      if (phi < 90) {
-        phi = Math.max(5, phi - poleBonus); // Reach closer to top pole (15° minimum)
-      } else {
-        phi = Math.min(175, phi + poleBonus); // Reach closer to bottom pole (165° maximum)
+        // Horizontal drag: rotate around Y. Vertical drag: rotate around X.
+        const x1 = x * cosY + z * sinY;
+        const z1 = -x * sinY + z * cosY;
+        x = x1;
+        z = z1;
+        const y2 = y * cosX - z * sinX;
+        const z2 = y * sinX + z * cosX;
+        y = y2;
+        z = z2;
+
+        wx[i] = x;
+        wy[i] = y;
+        wz[i] = z;
+        shown[i] = z > -30 ? 1 : 0;
+
+        // Images from the poles are allowed to stay bigger toward the edge of the disc.
+        const isPole = pos.phi < 30 || pos.phi > 150;
+        const distanceRatio = Math.min(Math.sqrt(x * x + y * y) / actualSphereRadius, 1);
+        const centerScale = Math.max(0.3, 1 - distanceRatio * (isPole ? 0.4 : 0.7));
+        const depthScale = (z + actualSphereRadius) / (2 * actualSphereRadius);
+        ws[i] = centerScale * Math.max(0.5, 0.8 + depthScale * 0.3);
       }
 
-      // Map to fuller vertical range - covers poles but avoids extremes
-      phi = 15 + (phi / 180) * 150; // Map to 15-165 degrees for pole coverage with stability
-
-      // Add slight randomization to prevent perfect patterns
-      const randomOffset = (Math.random() - 0.5) * 20;
-      theta = (theta + randomOffset) % 360;
-      phi = Math.max(0, Math.min(180, phi + (Math.random() - 0.5) * 10));
-
-      positions.push({
-        theta: theta,
-        phi: phi,
-        radius: actualSphereRadius
-      });
-    }
-
-    return positions;
-  }, [images.length, actualSphereRadius]);
-
-  const calculateWorldPositions = useCallback((): WorldPosition[] => {
-    const positions = imagePositions.map((pos, index) => {
-      // Apply rotation using proper 3D rotation matrices
-      const thetaRad = SPHERE_MATH.degreesToRadians(pos.theta);
-      const phiRad = SPHERE_MATH.degreesToRadians(pos.phi);
-      const rotXRad = SPHERE_MATH.degreesToRadians(rotation.x);
-      const rotYRad = SPHERE_MATH.degreesToRadians(rotation.y);
-
-      // Initial position on sphere
-      let x = pos.radius * Math.sin(phiRad) * Math.cos(thetaRad);
-      let y = pos.radius * Math.cos(phiRad);
-      let z = pos.radius * Math.sin(phiRad) * Math.sin(thetaRad);
-
-      // Apply Y-axis rotation (horizontal drag)
-      const x1 = x * Math.cos(rotYRad) + z * Math.sin(rotYRad);
-      const z1 = -x * Math.sin(rotYRad) + z * Math.cos(rotYRad);
-      x = x1;
-      z = z1;
-
-      // Apply X-axis rotation (vertical drag)
-      const y2 = y * Math.cos(rotXRad) - z * Math.sin(rotXRad);
-      const z2 = y * Math.sin(rotXRad) + z * Math.cos(rotXRad);
-      y = y2;
-      z = z2;
-
-      const worldPos: Position3D = { x, y, z };
-
-      // Calculate visibility with smooth fade zones
-      const fadeZoneStart = -10;  // Start fading out
-      const fadeZoneEnd = -30;    // Completely hidden
-      const isVisible = worldPos.z > fadeZoneEnd;
-
-      // Calculate fade opacity based on Z position
-      let fadeOpacity = 1;
-      if (worldPos.z <= fadeZoneStart) {
-        // Linear fade from 1 to 0 as Z goes from fadeZoneStart to fadeZoneEnd
-        fadeOpacity = Math.max(0, (worldPos.z - fadeZoneEnd) / (fadeZoneStart - fadeZoneEnd));
+      // Shrink images that would overlap a neighbour on screen.
+      for (let i = 0; i < count; i++) {
+        if (!shown[i]) continue;
+        let adjusted = ws[i];
+        const size = baseImageSize * adjusted;
+        for (let j = 0; j < count; j++) {
+          if (i === j || !shown[j]) continue;
+          const dx = wx[i] - wx[j];
+          const dy = wy[i] - wy[j];
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const minDistance = (size + baseImageSize * ws[j]) / 2 + 25;
+          if (distance < minDistance && distance > 0) {
+            const overlap = minDistance - distance;
+            adjusted = Math.min(adjusted, adjusted * Math.max(0.4, 1 - (overlap / minDistance) * 0.6));
+          }
+        }
+        scales.current[i] = Math.max(0.25, adjusted);
       }
 
-      // Check if this image originated from a pole position
-      const isPoleImage = pos.phi < 30 || pos.phi > 150; // Images from extreme angles
-
-      // Calculate distance from center for scaling (in 2D screen space)
-      const distanceFromCenter = Math.sqrt(worldPos.x * worldPos.x + worldPos.y * worldPos.y);
-      const maxDistance = actualSphereRadius;
-      const distanceRatio = Math.min(distanceFromCenter / maxDistance, 1);
-
-      // Scale based on distance from center - be more forgiving for pole images
-      const distancePenalty = isPoleImage ? 0.4 : 0.7; // Less penalty for pole images
-      const centerScale = Math.max(0.3, 1 - distanceRatio * distancePenalty);
-
-      // Also consider Z-depth for additional scaling
-      const depthScale = (worldPos.z + actualSphereRadius) / (2 * actualSphereRadius);
-      const scale = centerScale * Math.max(0.5, 0.8 + depthScale * 0.3);
-
-      return {
-        ...worldPos,
-        scale,
-        zIndex: Math.round(1000 + worldPos.z),
-        isVisible,
-        fadeOpacity,
-        originalIndex: index
-      };
-    });
-
-    // Apply collision detection to prevent overlaps
-    const adjustedPositions = [...positions];
-
-    for (let i = 0; i < adjustedPositions.length; i++) {
-      const pos = adjustedPositions[i];
-      if (!pos.isVisible) continue;
-
-      let adjustedScale = pos.scale;
-      const imageSize = baseImageSize * adjustedScale;
-
-      // Check for overlaps with other visible images
-      for (let j = 0; j < adjustedPositions.length; j++) {
-        if (i === j) continue;
-
-        const other = adjustedPositions[j];
-        if (!other.isVisible) continue;
-
-        const otherSize = baseImageSize * other.scale;
-
-        // Calculate 2D distance between images on screen
-        const dx = pos.x - other.x;
-        const dy = pos.y - other.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        // Minimum distance to prevent overlap (with more generous padding)
-        const minDistance = (imageSize + otherSize) / 2 + 25;
-
-        if (distance < minDistance && distance > 0) {
-          // More aggressive scale reduction to prevent overlap
-          const overlap = minDistance - distance;
-          const reductionFactor = Math.max(0.4, 1 - (overlap / minDistance) * 0.6);
-          adjustedScale = Math.min(adjustedScale, adjustedScale * reductionFactor);
+      for (let i = 0; i < count; i++) {
+        const node = nodeRefs.current[i];
+        if (!node) continue;
+        if (!shown[i]) {
+          if (lastOpacity[i] !== "hidden") {
+            node.style.visibility = "hidden";
+            lastOpacity[i] = "hidden";
+          }
+          continue;
+        }
+        const scale = scales.current[i] ?? ws[i];
+        const transform = `translate3d(${wx[i].toFixed(1)}px,${wy[i].toFixed(1)}px,0) scale(${scale.toFixed(3)})`;
+        if (transform !== lastTransform[i]) {
+          node.style.transform = transform;
+          lastTransform[i] = transform;
+        }
+        const fade = wz[i] <= -10 ? Math.max(0, (wz[i] + 30) / 20) : 1;
+        const opacity = fade.toFixed(2);
+        if (opacity !== lastOpacity[i]) {
+          node.style.opacity = opacity;
+          node.style.visibility = "visible";
+          lastOpacity[i] = opacity;
+        }
+        const zIndex = Math.round(1000 + wz[i]);
+        if (zIndex !== lastZ[i]) {
+          node.style.zIndex = String(zIndex);
+          lastZ[i] = zIndex;
         }
       }
 
-      adjustedPositions[i] = {
-        ...pos,
-        scale: Math.max(0.25, adjustedScale) // Ensure minimum scale
-      };
+      if (hovered.current !== null) applyHover(hovered.current);
     }
 
-    return adjustedPositions;
-  }, [imagePositions, rotation, actualSphereRadius, baseImageSize]);
+    function applyHover(index: number) {
+      const inner = innerRefs.current[index];
+      if (!inner) return;
+      const scale = scales.current[index] ?? 1;
+      inner.style.transform = `scale(${Math.min(hoverScale, hoverScale / scale).toFixed(3)})`;
+    }
+    hoverHandlers.enter = (index) => {
+      hovered.current = index;
+      applyHover(index);
+    };
+    hoverHandlers.leave = (index) => {
+      if (hovered.current === index) hovered.current = null;
+      const inner = innerRefs.current[index];
+      if (inner) inner.style.transform = "";
+    };
 
-  const clampRotationSpeed = useCallback((speed: number): number => {
-    return Math.max(-maxRotationSpeed, Math.min(maxRotationSpeed, speed));
-  }, [maxRotationSpeed]);
+    // ---- the loop: only while on screen and in a visible tab
+    let raf = 0;
+    let lastFrame = 0;
+    let onScreen = true;
 
-  // ==========================================
-  // PHYSICS & MOMENTUM
-  // ==========================================
-
-  const updateMomentum = useCallback(() => {
-    if (isDragging) return;
-
-    setVelocity(prev => {
-      const newVelocity = {
-        x: prev.x * momentumDecay,
-        y: prev.y * momentumDecay
-      };
-
-      // Stop animation if velocity is too low and auto-rotate is off
-      if (!autoRotate && Math.abs(newVelocity.x) < 0.01 && Math.abs(newVelocity.y) < 0.01) {
-        return { x: 0, y: 0 };
+    function frame(now: number) {
+      raf = 0;
+      if (!onScreen) return;
+      const first = lastFrame === 0;
+      const elapsed = first ? 16.7 : now - lastFrame;
+      const moving = drag.current.active || Math.abs(velocity.current.x) > 0.01 || Math.abs(velocity.current.y) > 0.01;
+      if (!first && !moving && elapsed < IDLE_FRAME_MS - 2) {
+        raf = requestAnimationFrame(frame);
+        return;
       }
+      lastFrame = now;
+      const f = Math.min(elapsed, MAX_STEP_MS) / (1000 / 60);
 
-      return newVelocity;
-    });
-
-    setRotation(prev => {
-      let newY = prev.y;
-
-      // Add auto-rotation to Y axis (horizontal rotation)
-      if (autoRotate) {
-        newY += autoRotateSpeed;
+      if (!drag.current.active) {
+        const decay = Math.pow(momentumDecay, f);
+        const { x: vx, y: vy } = velocity.current;
+        rotation.current.y = normalizeAngle(rotation.current.y + ((spin ? autoRotateSpeed : 0) + clamp(vy)) * f);
+        rotation.current.x = normalizeAngle(rotation.current.x + clamp(vx) * f);
+        // Momentum fades out; below a whisper it stops (auto-rotation carries on regardless).
+        const settled = Math.abs(vx * decay) < 0.01 && Math.abs(vy * decay) < 0.01;
+        velocity.current = settled ? { x: 0, y: 0 } : { x: vx * decay, y: vy * decay };
       }
+      render();
 
-      // Add momentum-based rotation
-      newY += clampRotationSpeed(velocity.y);
-
-      return {
-        x: SPHERE_MATH.normalizeAngle(prev.x + clampRotationSpeed(velocity.x)),
-        y: SPHERE_MATH.normalizeAngle(newY),
-        z: prev.z
-      };
-    });
-  }, [isDragging, momentumDecay, velocity, clampRotationSpeed, autoRotate, autoRotateSpeed]);
-
-  // ==========================================
-  // EVENT HANDLERS
-  // ==========================================
-
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-    setVelocity({ x: 0, y: 0 });
-    lastMousePos.current = { x: e.clientX, y: e.clientY };
-  }, []);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging) return;
-
-    const deltaX = e.clientX - lastMousePos.current.x;
-    const deltaY = e.clientY - lastMousePos.current.y;
-
-    const rotationDelta = {
-      x: -deltaY * dragSensitivity,
-      y: deltaX * dragSensitivity
-    };
-
-    setRotation(prev => ({
-      x: SPHERE_MATH.normalizeAngle(prev.x + clampRotationSpeed(rotationDelta.x)),
-      y: SPHERE_MATH.normalizeAngle(prev.y + clampRotationSpeed(rotationDelta.y)),
-      z: prev.z
-    }));
-
-    // Update velocity for momentum
-    setVelocity({
-      x: clampRotationSpeed(rotationDelta.x),
-      y: clampRotationSpeed(rotationDelta.y)
-    });
-
-    lastMousePos.current = { x: e.clientX, y: e.clientY };
-  }, [isDragging, dragSensitivity, clampRotationSpeed]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    setIsDragging(true);
-    setVelocity({ x: 0, y: 0 });
-    lastMousePos.current = { x: touch.clientX, y: touch.clientY };
-  }, []);
-
-  const handleTouchMove = useCallback((e: TouchEvent) => {
-    if (!isDragging) return;
-    e.preventDefault();
-
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - lastMousePos.current.x;
-    const deltaY = touch.clientY - lastMousePos.current.y;
-
-    const rotationDelta = {
-      x: -deltaY * dragSensitivity,
-      y: deltaX * dragSensitivity
-    };
-
-    setRotation(prev => ({
-      x: SPHERE_MATH.normalizeAngle(prev.x + clampRotationSpeed(rotationDelta.x)),
-      y: SPHERE_MATH.normalizeAngle(prev.y + clampRotationSpeed(rotationDelta.y)),
-      z: prev.z
-    }));
-
-    setVelocity({
-      x: clampRotationSpeed(rotationDelta.x),
-      y: clampRotationSpeed(rotationDelta.y)
-    });
-
-    lastMousePos.current = { x: touch.clientX, y: touch.clientY };
-  }, [isDragging, dragSensitivity, clampRotationSpeed]);
-
-  const handleTouchEnd = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  // ==========================================
-  // EFFECTS & LIFECYCLE
-  // ==========================================
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    setImagePositions(generateSpherePositions());
-  }, [generateSpherePositions]);
-
-  useEffect(() => {
-    const animate = () => {
-      updateMomentum();
-      animationFrame.current = requestAnimationFrame(animate);
-    };
-
-    if (isMounted) {
-      animationFrame.current = requestAnimationFrame(animate);
+      // Keep going while there is anything to animate; a still, non-rotating sphere stops until touched.
+      if (spin || moving || drag.current.active) raf = requestAnimationFrame(frame);
     }
 
-    return () => {
-      if (animationFrame.current) {
-        cancelAnimationFrame(animationFrame.current);
+    const start = () => {
+      if (!raf && onScreen && !document.hidden) {
+        lastFrame = 0;
+        raf = requestAnimationFrame(frame);
       }
     };
-  }, [isMounted, updateMomentum]);
+    controls.current = {
+      start,
+      render: () => {
+        if (raf) return;
+        raf = requestAnimationFrame((now) => {
+          raf = 0;
+          lastFrame = now;
+          render();
+        });
+      },
+    };
 
-  useEffect(() => {
-    if (!isMounted) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        onScreen = entry.isIntersecting;
+        if (onScreen) start();
+        else if (raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        }
+      },
+      { rootMargin: "80px" },
+    );
+    io.observe(container);
+    const onVisibility = () => {
+      if (!document.hidden) start();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
 
-    const container = containerRef.current;
-    if (!container) return;
-
-    // Mouse events
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    // Touch events
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('touchend', handleTouchEnd);
+    render();
+    start();
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
+      cancelAnimationFrame(raf);
+      io.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
+      controls.current = { render: () => {}, start: () => {} };
     };
-  }, [isMounted, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMounted, images.length, actualSphereRadius, baseImageSize, autoRotate, autoRotateSpeed, momentumDecay, maxRotationSpeed, hoverScale]);
 
-  // ==========================================
-  // RENDER HELPERS
-  // ==========================================
+  const clampSpeed = (speed: number) => Math.max(-maxRotationSpeed, Math.min(maxRotationSpeed, speed));
 
-  // Calculate world positions once per render
-  const worldPositions = calculateWorldPositions();
+  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    drag.current = { active: true, x: event.clientX, y: event.clientY, moved: 0 };
+    velocity.current = { x: 0, y: 0 };
 
-  const renderImageNode = useCallback((image: ImageData, index: number) => {
-    const position = worldPositions[index];
-
-    if (!position || !position.isVisible) return null;
-
-    const imageSize = baseImageSize * position.scale;
-    const isHovered = hoveredIndex === index;
-    const finalScale = isHovered ? Math.min(1.2, 1.2 / position.scale) : 1;
-
-    return (
-      <div
-        key={image.id}
-        className="absolute cursor-pointer select-none transition-transform duration-200 ease-out"
-        style={{
-          width: `${imageSize}px`,
-          height: `${imageSize}px`,
-          left: `${containerSize/2 + position.x}px`,
-          top: `${containerSize/2 + position.y}px`,
-          opacity: position.fadeOpacity,
-          transform: `translate(-50%, -50%) scale(${finalScale})`,
-          zIndex: position.zIndex
-        }}
-        onMouseEnter={() => setHoveredIndex(index)}
-        onMouseLeave={() => setHoveredIndex(null)}
-        onClick={() => setSelectedImage(image)}
-      >
-        <div className="relative w-full h-full rounded-full overflow-hidden shadow-lg border-2 border-white/20">
-          <img
-            src={image.src}
-            alt={image.alt}
-            className="w-full h-full object-cover"
-            draggable={false}
-            loading={index < 3 ? 'eager' : 'lazy'}
-          />
-        </div>
-      </div>
-    );
-  }, [worldPositions, baseImageSize, containerSize, hoveredIndex]);
-
-  const renderSpotlightModal = () => {
-    if (!selectedImage) return null;
-
-    return (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30"
-        onClick={() => setSelectedImage(null)}
-        style={{
-          animation: 'fadeIn 0.3s ease-out'
-        }}
-      >
-        <div
-          className="bg-white rounded-xl max-w-md w-full overflow-hidden"
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            animation: 'scaleIn 0.3s ease-out'
-          }}
-        >
-          <div className="relative aspect-square">
-            <img
-              src={selectedImage.src}
-              alt={selectedImage.alt}
-              className="w-full h-full object-cover"
-            />
-            <button
-              onClick={() => setSelectedImage(null)}
-              className="absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-50 rounded-full text-white flex items-center justify-center hover:bg-opacity-70 transition-all cursor-pointer"
-            >
-              <X size={16} />
-            </button>
-          </div>
-
-          {(selectedImage.title || selectedImage.description) && (
-            <div className="p-6">
-              {selectedImage.title && (
-                <h3 className="text-xl font-bold mb-2 text-gray-900">{selectedImage.title}</h3>
-              )}
-              {selectedImage.description && (
-                <p className="text-gray-600">{selectedImage.description}</p>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    );
+    const onMove = (e: PointerEvent) => {
+      if (!drag.current.active) return;
+      const dx = e.clientX - drag.current.x;
+      const dy = e.clientY - drag.current.y;
+      drag.current.x = e.clientX;
+      drag.current.y = e.clientY;
+      drag.current.moved += Math.abs(dx) + Math.abs(dy);
+      const rx = clampSpeed(-dy * dragSensitivity);
+      const ry = clampSpeed(dx * dragSensitivity);
+      rotation.current.x = normalizeAngle(rotation.current.x + rx);
+      rotation.current.y = normalizeAngle(rotation.current.y + ry);
+      velocity.current = { x: rx, y: ry };
+      controls.current.render();
+    };
+    const onEnd = () => {
+      drag.current.active = false;
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onEnd);
+      document.removeEventListener("pointercancel", onEnd);
+      // Let the momentum play out (and keep auto-rotation going).
+      controls.current.start();
+    };
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onEnd);
+    document.addEventListener("pointercancel", onEnd);
   };
-
-  // ==========================================
-  // EARLY RETURNS
-  // ==========================================
 
   if (!isMounted) {
     return (
@@ -620,10 +407,6 @@ const SphereImageGrid: React.FC<SphereImageGridProps> = ({
     );
   }
 
-  // ==========================================
-  // MAIN RENDER
-  // ==========================================
-
   return (
     <>
       <style>{`
@@ -640,20 +423,86 @@ const SphereImageGrid: React.FC<SphereImageGridProps> = ({
       <div
         ref={containerRef}
         className={`relative select-none cursor-grab active:cursor-grabbing ${className}`}
-        style={{
-          width: containerSize,
-          height: containerSize,
-          perspective: `${perspective}px`
-        }}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
+        style={{ width: containerSize, height: containerSize, perspective: `${perspective}px`, touchAction: "pan-y" }}
+        onPointerDown={onPointerDown}
       >
         <div className="relative w-full h-full" style={{ zIndex: 10 }}>
-          {images.map((image, index) => renderImageNode(image, index))}
+          {images.map((image, index) => (
+            <div
+              key={image.id}
+              ref={(el) => {
+                nodeRefs.current[index] = el;
+              }}
+              className="absolute cursor-pointer select-none"
+              style={{
+                left: "50%",
+                top: "50%",
+                width: baseImageSize,
+                height: baseImageSize,
+                marginLeft: -baseImageSize / 2,
+                marginTop: -baseImageSize / 2,
+                visibility: "hidden",
+                willChange: "transform, opacity",
+              }}
+              onMouseEnter={() => hoverHandlers.enter(index)}
+              onMouseLeave={() => hoverHandlers.leave(index)}
+              onClick={() => {
+                // A drag that ends over an image is not a click on it.
+                if (drag.current.moved > 4) return;
+                setSelectedImage(image);
+              }}
+            >
+              <div
+                ref={(el) => {
+                  innerRefs.current[index] = el;
+                }}
+                className="relative w-full h-full rounded-full overflow-hidden shadow-lg border-2 border-white/20 transition-transform duration-200 ease-out"
+              >
+                <img
+                  src={image.src}
+                  alt={image.alt}
+                  className="w-full h-full object-cover"
+                  draggable={false}
+                  decoding="async"
+                  loading={index < 3 ? "eager" : "lazy"}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {renderSpotlightModal()}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30"
+          onClick={() => setSelectedImage(null)}
+          style={{ animation: "fadeIn 0.3s ease-out" }}
+        >
+          <div
+            className="bg-white rounded-xl max-w-md w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+            style={{ animation: "scaleIn 0.3s ease-out" }}
+          >
+            <div className="relative aspect-square">
+              <img src={selectedImage.src} alt={selectedImage.alt} className="w-full h-full object-cover" />
+              <button
+                onClick={() => setSelectedImage(null)}
+                aria-label="Close"
+                className="absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-50 rounded-full text-white flex items-center justify-center hover:bg-opacity-70 transition-all cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {(selectedImage.title || selectedImage.description) && (
+              <div className="p-6">
+                {selectedImage.title && <h3 className="text-xl font-bold mb-2 text-gray-900">{selectedImage.title}</h3>}
+                {selectedImage.description && <p className="text-gray-600">{selectedImage.description}</p>}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 };

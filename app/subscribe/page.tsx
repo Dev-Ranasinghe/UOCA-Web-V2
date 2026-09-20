@@ -1,18 +1,13 @@
-"use client";
-
-import React, { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SubscribeForm from "@/components/subscribe/SubscribeForm";
+
+export const metadata = {
+  title: "Subscribe — Leo Club of Universities of Ceylon Alumni",
+  description: "Get the latest stories, insights, and updates from the Leo Club of UOC Alumni delivered to your inbox.",
+};
 
 export default function SubscribePage() {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) setSubmitted(true);
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-[#eae7e1] text-[#121212]">
       <Navbar activePage="SUBSCRIBE" />
@@ -27,24 +22,9 @@ export default function SubscribePage() {
             Get the latest stories, insights, and updates delivered straight to your inbox.
           </p>
 
-          <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
-            <div className="relative flex items-center bg-white border border-[#121212] rounded-md p-2 shadow-sm">
-              <input
-                type="email"
-                required
-                placeholder="Add your email to subscribe"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full text-sm font-sans px-4 py-2 text-[#121212] placeholder-[#777] outline-none"
-              />
-              <button
-                type="submit"
-                className="bg-[#121212] text-white px-6 py-2.5 rounded text-xs font-mono font-bold tracking-wider hover:bg-[#333] transition-colors whitespace-nowrap"
-              >
-                {submitted ? "SUBSCRIBED ✓" : "SUBSCRIBE"}
-              </button>
-            </div>
-          </form>
+          <div className="max-w-lg mx-auto text-left">
+            <SubscribeForm variant="page" source="subscribe-page" placeholder="Add your email to subscribe" />
+          </div>
         </div>
 
         {/* Social Icons */}

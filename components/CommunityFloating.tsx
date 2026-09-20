@@ -7,33 +7,33 @@ import SphereImageGrid, { type ImageData } from "@/components/ui/img-sphere";
 
 // Real UOCA club members, sourced from `LC UOCA Site/Club Members/{BOD,EXCO,HEAD}`.
 const CLUB_MEMBERS: { name: string; category: string; image: string }[] = [
-  { name: "Akindu", category: "Board of Directors", image: "/images/club-members/bod/Akindu.png" },
-  { name: "Induwara", category: "Board of Directors", image: "/images/club-members/bod/Induwara.png" },
-  { name: "Manasi", category: "Board of Directors", image: "/images/club-members/bod/Manasi.png" },
-  { name: "Pudam", category: "Board of Directors", image: "/images/club-members/bod/Pudam.png" },
-  { name: "Rohansi", category: "Board of Directors", image: "/images/club-members/bod/Rohansi.png" },
-  { name: "Sahan", category: "Board of Directors", image: "/images/club-members/bod/Sahan.png" },
-  { name: "Samadhi", category: "Board of Directors", image: "/images/club-members/bod/Samadhi.png" },
-  { name: "Sasmitha", category: "Board of Directors", image: "/images/club-members/bod/Sasmitha.png" },
-  { name: "Senadhi", category: "Board of Directors", image: "/images/club-members/bod/Senadhi.png" },
-  { name: "Senith", category: "Board of Directors", image: "/images/club-members/bod/Senith.png" },
-  { name: "Senuri", category: "Board of Directors", image: "/images/club-members/bod/Senuri.png" },
-  { name: "Shevini", category: "Board of Directors", image: "/images/club-members/bod/Shevini.png" },
-  { name: "Thathsara", category: "Board of Directors", image: "/images/club-members/bod/Thathsara.png" },
-  { name: "Thilini", category: "Board of Directors", image: "/images/club-members/bod/Thilini.png" },
-  { name: "Aloka", category: "Exco", image: "/images/club-members/exco/Aloka.png" },
-  { name: "Dev", category: "Exco", image: "/images/club-members/exco/Dev.png" },
-  { name: "Gagana", category: "Exco", image: "/images/club-members/exco/Gagana.png" },
-  { name: "Imasha", category: "Exco", image: "/images/club-members/exco/Imasha.png" },
-  { name: "Lithira", category: "Exco", image: "/images/club-members/exco/Lithira.png" },
-  { name: "Manujitha", category: "Exco", image: "/images/club-members/exco/Manujitha.png" },
-  { name: "Rivindu", category: "Exco", image: "/images/club-members/exco/Rivindu.png" },
-  { name: "Sasun", category: "Exco", image: "/images/club-members/exco/Sasun.png" },
-  { name: "Shakya", category: "Exco", image: "/images/club-members/exco/Shakya.png" },
-  { name: "Thisula", category: "Exco", image: "/images/club-members/exco/Thisula.png" },
-  { name: "Deelaka", category: "Head", image: "/images/club-members/head/Deelaka.png" },
-  { name: "Dilan", category: "Head", image: "/images/club-members/head/Dilan.png" },
-  { name: "Onel", category: "Head", image: "/images/club-members/head/Onel.png" },
+  { name: "Akindu", category: "Board of Directors", image: "/images/club-members-web/bod/Akindu.webp" },
+  { name: "Induwara", category: "Board of Directors", image: "/images/club-members-web/bod/Induwara.webp" },
+  { name: "Manasi", category: "Board of Directors", image: "/images/club-members-web/bod/Manasi.webp" },
+  { name: "Pudam", category: "Board of Directors", image: "/images/club-members-web/bod/Pudam.webp" },
+  { name: "Rohansi", category: "Board of Directors", image: "/images/club-members-web/bod/Rohansi.webp" },
+  { name: "Sahan", category: "Board of Directors", image: "/images/club-members-web/bod/Sahan.webp" },
+  { name: "Samadhi", category: "Board of Directors", image: "/images/club-members-web/bod/Samadhi.webp" },
+  { name: "Sasmitha", category: "Board of Directors", image: "/images/club-members-web/bod/Sasmitha.webp" },
+  { name: "Senadhi", category: "Board of Directors", image: "/images/club-members-web/bod/Senadhi.webp" },
+  { name: "Senith", category: "Board of Directors", image: "/images/club-members-web/bod/Senith.webp" },
+  { name: "Senuri", category: "Board of Directors", image: "/images/club-members-web/bod/Senuri.webp" },
+  { name: "Shevini", category: "Board of Directors", image: "/images/club-members-web/bod/Shevini.webp" },
+  { name: "Thathsara", category: "Board of Directors", image: "/images/club-members-web/bod/Thathsara.webp" },
+  { name: "Thilini", category: "Board of Directors", image: "/images/club-members-web/bod/Thilini.webp" },
+  { name: "Aloka", category: "Exco", image: "/images/club-members-web/exco/Aloka.webp" },
+  { name: "Dev", category: "Exco", image: "/images/club-members-web/exco/Dev.webp" },
+  { name: "Gagana", category: "Exco", image: "/images/club-members-web/exco/Gagana.webp" },
+  { name: "Imasha", category: "Exco", image: "/images/club-members-web/exco/Imasha.webp" },
+  { name: "Lithira", category: "Exco", image: "/images/club-members-web/exco/Lithira.webp" },
+  { name: "Manujitha", category: "Exco", image: "/images/club-members-web/exco/Manujitha.webp" },
+  { name: "Rivindu", category: "Exco", image: "/images/club-members-web/exco/Rivindu.webp" },
+  { name: "Sasun", category: "Exco", image: "/images/club-members-web/exco/Sasun.webp" },
+  { name: "Shakya", category: "Exco", image: "/images/club-members-web/exco/Shakya.webp" },
+  { name: "Thisula", category: "Exco", image: "/images/club-members-web/exco/Thisula.webp" },
+  { name: "Deelaka", category: "Head", image: "/images/club-members-web/head/Deelaka.webp" },
+  { name: "Dilan", category: "Head", image: "/images/club-members-web/head/Dilan.webp" },
+  { name: "Onel", category: "Head", image: "/images/club-members-web/head/Onel.webp" },
 ];
 
 // Same total circle count as the original SphereImageGrid demo (60), cycling
@@ -96,12 +96,12 @@ export default function CommunityFloating() {
             [ OUR PEOPLE ]
           </p>
           <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-[1.1] mb-5">
-            Meet the backbone of UOCA
+            Meet the team behind UOCA
           </h2>
           <p className="font-sans text-sm sm:text-base text-[#aaa] leading-relaxed mb-8 max-w-md">
-            Every project, story, and event READO covers is powered by a team of
-            volunteers who show up long before the credit does. Drag the sphere
-            to meet the Leos behind the scenes.
+            The people who lead, create, and bring the Leo spirit to life.
+            Meet the dedicated Leos behind the Leo Club of UOCA, working
+            together to turn passion into purpose.
           </p>
           <Link
             href="/team"

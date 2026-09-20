@@ -1,19 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
 import Link from "next/link";
 import HalftoneBanner from "@/components/HalftoneBanner";
 import SectionDivider from "@/components/SectionDivider";
+import SubscribeForm from "@/components/subscribe/SubscribeForm";
 
 export default function Footer() {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) setSubmitted(true);
-  };
-
   return (
     <>
       {/* One section-gap above the footer on every page. */}
@@ -37,10 +29,7 @@ export default function Footer() {
             <div>
               <Link href="/" className="inline-flex items-center gap-1 mb-6">
                 <span className="font-sans font-black text-2xl tracking-tighter uppercase text-white">
-                  READO
-                </span>
-                <span className="text-[10px] font-mono align-super font-bold text-white">
-                  TM
+                  UOC ALUMNI
                 </span>
               </Link>
 
@@ -48,24 +37,7 @@ export default function Footer() {
                 Never miss an update
               </h4>
 
-              <form onSubmit={handleSubscribe} className="mb-3 max-w-md">
-                <div className="relative flex items-center bg-[#111111] border border-[#333] rounded-md p-1.5 focus-within:border-white transition-colors">
-                  <input
-                    type="email"
-                    required
-                    placeholder="Subscribe with your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full text-xs font-sans px-3 py-1.5 bg-transparent text-white placeholder-[#777] outline-none"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-white text-black px-4 py-1.5 rounded text-xs font-mono font-bold tracking-wider hover:bg-[#eae7e1] transition-colors whitespace-nowrap"
-                  >
-                    {submitted ? "DONE ✓" : "SUBSCRIBE"}
-                  </button>
-                </div>
-              </form>
+              <SubscribeForm variant="footer" source="footer" placeholder="Subscribe with your email" className="mb-3 max-w-md" />
 
               <p className="text-[11px] text-[#777]">
                 By subscribing to Reado&apos;s newsletter, you agree to our{" "}
@@ -96,23 +68,38 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/authors" className="hover:text-white transition-colors">
-                    AUTHORS
+                  <Link href="/projects" className="hover:text-white transition-colors">
+                    PROJECTS
                   </Link>
                 </li>
                 <li>
-                  <Link href="/categories" className="hover:text-white transition-colors">
-                    CATEGORIES
+                  <Link href="/newsletter" className="hover:text-white transition-colors">
+                    NEWSLETTER
                   </Link>
                 </li>
                 <li>
-                  <Link href="/blog" className="hover:text-white transition-colors">
-                    PODCAST
+                  <Link href="/calendar" className="hover:text-white transition-colors">
+                    CALENDAR
                   </Link>
                 </li>
                 <li>
-                  <Link href="/authors" className="hover:text-white transition-colors">
-                    ABOUT/CONTACT
+                  <Link href="/leo-id" className="hover:text-white transition-colors">
+                    UOCA ID
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/lynx" className="hover:text-white transition-colors">
+                    LYNX
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact" className="hover:text-white transition-colors">
+                    CONTACT
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/team" className="hover:text-white transition-colors">
+                    TEAM
                   </Link>
                 </li>
                 <li>
@@ -120,50 +107,45 @@ export default function Footer() {
                     SUBSCRIBE
                   </Link>
                 </li>
+                <li>
+                  <Link href="/join" className="hover:text-white transition-colors">
+                    JOIN UOCA
+                  </Link>
+                </li>
               </ul>
             </div>
 
             <SectionDivider dark className="my-5 opacity-50 md:hidden" />
 
-            {/* Categories */}
+            {/* Projects */}
             <div className="md:border-l border-[#222] md:pl-6">
               <h5 className="font-serif text-base font-semibold text-white mb-4">
-                Categories
+                Projects
               </h5>
               <ul className="flex flex-wrap gap-x-5 gap-y-2.5 md:block md:space-y-2 text-xs font-mono text-[#aaa]">
                 <li>
-                  <Link href="/blog?category=finance" className="hover:text-white transition-colors">
-                    FINANCE
+                  <Link href="/projects" className="hover:text-white transition-colors">
+                    ALL PROJECTS
                   </Link>
                 </li>
                 <li>
-                  <Link href="/blog?category=health" className="hover:text-white transition-colors">
-                    HEALTH
+                  <Link href="/projects/timeless-legacy" className="hover:text-white transition-colors">
+                    TIMELESS LEGACY
                   </Link>
                 </li>
                 <li>
-                  <Link href="/blog?category=business" className="hover:text-white transition-colors">
-                    BUSINESS
+                  <Link href="/projects/guardian" className="hover:text-white transition-colors">
+                    GUARDIAN
                   </Link>
                 </li>
                 <li>
-                  <Link href="/blog?category=food" className="hover:text-white transition-colors">
-                    FOOD
+                  <Link href="/projects/blood-donation-camp" className="hover:text-white transition-colors">
+                    BLOOD DONATION CAMP
                   </Link>
                 </li>
                 <li>
-                  <Link href="/blog?category=travel" className="hover:text-white transition-colors">
-                    TRAVEL
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/blog?category=lifestyle" className="hover:text-white transition-colors">
-                    LIFESTYLE
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/blog?category=tech" className="hover:text-white transition-colors">
-                    TECH
+                  <Link href="/projects/community-beach-cleanup" className="hover:text-white transition-colors">
+                    COMMUNITY BEACH CLEANUP
                   </Link>
                 </li>
               </ul>

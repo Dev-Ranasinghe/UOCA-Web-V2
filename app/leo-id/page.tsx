@@ -142,7 +142,7 @@ export default async function LeoIdPage({
           <h1 className="font-serif text-5xl sm:text-6xl font-bold text-[#121212]">UOCA ID</h1>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[22rem_1fr] items-start">
+        <div className="grid gap-8 md:grid-cols-[15rem_1fr] lg:grid-cols-[22rem_1fr] items-start">
           <LeoIdSearch initialMembers={initialMembers} activeId={profile?.id ?? null} />
 
           <section aria-live="polite">

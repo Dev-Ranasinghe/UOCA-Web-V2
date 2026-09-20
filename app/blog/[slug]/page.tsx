@@ -107,6 +107,7 @@ export default async function ArticleDetailPage({
                 src={article.featuredImage?.url ?? PLACEHOLDER_IMAGE}
                 alt={article.title}
                 fill
+                sizes="(min-width: 1024px) 800px, 100vw"
                 className="object-cover object-center"
                 priority
               />
@@ -126,6 +127,7 @@ export default async function ArticleDetailPage({
                         src={previousArticle.featuredImage?.url ?? PLACEHOLDER_IMAGE}
                         alt={previousArticle.title}
                         fill
+                        sizes="56px"
                         className="object-cover"
                       />
                     </div>
@@ -157,6 +159,7 @@ export default async function ArticleDetailPage({
                         src={nextArticle.featuredImage?.url ?? PLACEHOLDER_IMAGE}
                         alt={nextArticle.title}
                         fill
+                        sizes="56px"
                         className="object-cover"
                       />
                     </div>
@@ -187,6 +190,7 @@ export default async function ArticleDetailPage({
                         src={primaryAuthor.profileImage?.url ?? PLACEHOLDER_IMAGE}
                         alt={primaryAuthor.displayName}
                         fill
+                        sizes="56px"
                         className="object-cover"
                       />
                     </div>
@@ -238,6 +242,7 @@ export default async function ArticleDetailPage({
                         src={featuredPost.featuredImage?.url ?? PLACEHOLDER_IMAGE}
                         alt={featuredPost.title}
                         fill
+                        sizes="64px"
                         className="object-cover"
                       />
                     </div>

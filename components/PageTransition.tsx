@@ -69,6 +69,8 @@ export default function PageTransition() {
     if (!curtain) return;
     clearWork();
     phaseRef.current = "revealing";
+    // Tell components/PageReveal.tsx the black is about to drain, so the page content can rise in with it.
+    window.dispatchEvent(new CustomEvent("page-curtain:reveal", { detail: { delay } }));
     gsap.set(curtain, { visibility: "visible", pointerEvents: "auto", clipPath: COVERED });
     tweenRef.current = gsap.to(curtain, {
       clipPath: COLLAPSED_BOTTOM,
@@ -214,7 +216,7 @@ export default function PageTransition() {
         className="page-curtain fixed inset-0 z-[100] flex flex-col items-center justify-center gap-4 bg-[#050505] text-[#eae7e1]"
         style={{ clipPath: COVERED }}
       >
-        <span className="font-sans text-3xl font-black uppercase tracking-tighter">UOCA LEO</span>
+        <span className="font-sans text-3xl font-black uppercase tracking-tighter">UOC ALUMNI</span>
         <span className="animate-pulse font-mono text-xs font-semibold tracking-[2px] text-[#c9c4bb]">ooo</span>
       </div>
       {/* Without scripts nothing would ever remove the curtain. */}

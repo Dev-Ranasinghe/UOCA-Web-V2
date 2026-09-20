@@ -42,12 +42,12 @@ const marqueePath =
 // Placeholder banner until real flyer artwork for each project is ready —
 // swap `src` in each entry for the actual flyer image once available.
 const currentProjects: HaloReelItem[] = [
-  { src: "/images/elephant.png", alt: "Blood Drive" },
-  { src: "/images/elephant.png", alt: "Beach Cleanup" },
-  { src: "/images/elephant.png", alt: "Tech For Good" },
-  { src: "/images/elephant.png", alt: "Fellowship Night" },
-  { src: "/images/elephant.png", alt: "Outreach Camp" },
-  { src: "/images/elephant.png", alt: "Global Partners" },
+  { src: "/images/elephant-card.webp", alt: "Blood Drive" },
+  { src: "/images/elephant-card.webp", alt: "Beach Cleanup" },
+  { src: "/images/elephant-card.webp", alt: "Tech For Good" },
+  { src: "/images/elephant-card.webp", alt: "Fellowship Night" },
+  { src: "/images/elephant-card.webp", alt: "Outreach Camp" },
+  { src: "/images/elephant-card.webp", alt: "Global Partners" },
 ];
 
 const heroAsciiConfig: AsciiEffectConfig = {
@@ -116,6 +116,10 @@ const heroAsciiConfig: AsciiEffectConfig = {
   directionalBothSides: false,
 };
 
+// These pages read the database but were prerendered once at build time, so a project or member added in the admin never
+// showed up until the next deploy. Statically served, refreshed in the background at most once a minute.
+export const revalidate = 60;
+
 export default async function HomePage() {
   const recentProjects = await prisma.project.findMany({
     where: { status: "PUBLISHED" },
@@ -130,23 +134,23 @@ export default async function HomePage() {
       <Navbar activePage="HOME" />
 
       {/* Main Content Area */}
-      <main className="section-stack flex-1 w-full pt-[calc(var(--section-gap)/2)]">
+      <main className="section-stack flex-1 w-full pt-6 md:pt-[calc(var(--section-gap)/2)]">
         {/* Top Hero Section */}
-        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-7 md:gap-8 items-stretch">
           {/* Left Column: Heading & Newsletter */}
-          <div className="lg:col-span-5 flex flex-col justify-between h-full pt-2">
+          <div className="lg:col-span-5 flex flex-col justify-between h-full md:pt-2">
             <div>
-              <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#121212] leading-[1.05] mb-4">
+              <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#121212] leading-[1.05] mb-5 md:mb-4">
                 Passion Meets Purpose [UOCA]
               </h2>
-              <p className="font-sans text-base text-[#444] leading-relaxed mb-6 font-normal">
+              <p className="font-sans text-base text-[#444] leading-[1.2] md:leading-relaxed mb-0 md:mb-6 font-normal">
                 Discover stories, initiatives, and ideas that showcase how
                 passionate Leos come together to serve communities, inspire
                 change, and create lasting impact.
               </p>
             </div>
 
-            <NewsletterStamp />
+            <NewsletterStamp className="lg:mb-0" />
           </div>
 
           {/* Right Column: Featured Post Card [NO. 999] */}
@@ -161,12 +165,12 @@ export default async function HomePage() {
               metaMono
               title="Leo Club of Universities of Ceylon Alumni | Since 2016"
               featured={true}
-              freeBadge={true}
+              className="h-full"
               tag="HOLAAA"
               numberLabel="[DESIGNED BY DANDY STUDIOS]"
               customMedia={
                 <AsciiEffectCanvas
-                  src="/videos/elephant-4k.mp4"
+                  src="/videos/elephant-hero.mp4"
                   config={heroAsciiConfig}
                   className="transition-[filter] duration-300 group-hover:grayscale"
                   style={{ transform: "scaleX(-1)" }}
@@ -177,9 +181,12 @@ export default async function HomePage() {
         </section>
 
       {/* Stack Spread */}
-      <div>
+      <div data-reveal="none">
         <StackSpread bgColor="#eae7e1" cardRadius={0} />
       </div>
+
+      {/* Meet the backbone of UOCA */}
+      <CommunityFloating />
 
       <>
         {/* Recent Project Updates Section */}
@@ -281,6 +288,8 @@ export default async function HomePage() {
                   alt={`Community highlight ${i + 1}`}
                   className="w-full h-full object-cover"
                   draggable={false}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             ))}
@@ -310,6 +319,7 @@ export default async function HomePage() {
                 src="/images/elephant.png"
                 alt="Editor's Choice Banner"
                 fill
+                sizes="(min-width: 1280px) 1216px, 100vw"
                 className="object-cover transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-6 sm:p-10 text-white">
@@ -343,6 +353,7 @@ export default async function HomePage() {
             src="/images/elephant.png"
             alt="Advertisement banner"
             fill
+            sizes="(min-width: 1280px) 1216px, 100vw"
             className="object-cover opacity-40 mix-blend-luminosity"
           />
           <div className="absolute top-2 right-2 bg-black/80 text-white text-[9px] font-mono font-bold px-2 py-0.5 uppercase tracking-wider">
@@ -364,7 +375,7 @@ export default async function HomePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-6 items-start">
           {/* Left Column (2 Stacked Cards) */}
-          <div className="grid grid-cols-2 gap-3 md:block md:space-y-6 lg:col-span-4">
+          <div className="grid grid-cols-2 gap-3 md:gap-6 lg:block lg:space-y-6 lg:col-span-4">
             <PostCard
               compact
               id="10"
@@ -389,19 +400,20 @@ export default async function HomePage() {
           <div className="lg:col-span-5 h-full">
             <PostCard
               compact
+              compactUntil="md"
               id="8"
               number="008"
               category="Business"
               author="Michael Smith"
               readTime="4 min read"
               title="Exploring the intersection of technology and wellness"
-              mediaAspectClass="aspect-[16/9] md:aspect-[4/3]"
+              mediaAspectClass="aspect-[16/9] lg:aspect-[4/3]"
               className="h-full"
             />
           </div>
 
           {/* Right Column (Text-only List & Ad Card) */}
-          <div className="space-y-5 md:space-y-6 lg:col-span-3">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6 lg:grid-cols-1 lg:col-span-3">
             <div className="space-y-4 md:border md:border-[#121212] md:bg-[#f7f5f0] md:p-4 md:rounded-sm">
               <div className="border-b border-[#121212] pb-3">
                 <h4 className="font-serif text-base font-bold text-[#121212] leading-snug">
@@ -443,6 +455,7 @@ export default async function HomePage() {
                 src="/images/elephant.png"
                 alt="Ad banner"
                 fill
+                sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                 className="object-cover opacity-40 mix-blend-luminosity"
               />
               <div className="absolute top-2 right-2 bg-black/80 text-white text-[9px] font-mono font-bold px-2 py-0.5 uppercase tracking-wider">
@@ -458,9 +471,6 @@ export default async function HomePage() {
 
       {/* Podcasts Section */}
       <PodcastsSection />
-
-      {/* Meet the backbone of UOCA */}
-      <CommunityFloating />
 
       {/* FAQ (dark, animated Auralis background) */}
       <FaqSection />

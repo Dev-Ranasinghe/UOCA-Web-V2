@@ -39,6 +39,7 @@ export function TeamGrid({ members }: { members: TeamMember[] }) {
                 src={member.image}
                 alt={member.name}
                 fill
+                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
                 className="object-cover filter group-hover:grayscale transition-all duration-300"
               />
             </div>

@@ -88,6 +88,12 @@ const BAYER4 = [
   [3, 11, 1, 9],
   [15, 7, 13, 5],
 ];
+/** Dither thresholds for the 4x4 sub-cells, flattened row by row. */
+const DITHER_THRESHOLDS = BAYER4.flat().map((v) => (v + 0.5) / 16);
+
+/** The source is sampled into a buffer of SAMPLE x SAMPLE pixels per cell; a cell's colour is their average. */
+const SAMPLE = 4;
+const SAMPLE_COUNT = SAMPLE * SAMPLE;
 
 function hash2(x: number, y: number) {
   const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
@@ -263,8 +269,11 @@ export default function AsciiEffectCanvas({
     let tryPlay: () => void = () => {};
     let onVisibility: (() => void) | null = null;
     let watchdog = 0;
-    // Declared before the media setup below, which closes over it.
+    // Declared before the media setup below, which closes over them.
     let destroyed = false;
+    // False while the canvas is scrolled out of view: nothing is drawn and the video is paused, so an off-screen
+    // effect costs nothing (it used to keep the main thread busy the whole time the visitor scrolled elsewhere).
+    let visible = true;
 
     if (isVideo) {
       const video = document.createElement("video");
@@ -287,7 +296,7 @@ export default function AsciiEffectCanvas({
       // one `play()` on one event loses the race whenever autoplay is deferred
       // (hidden tab, decoder not warm yet), and the frame then sticks forever.
       tryPlay = () => {
-        if (destroyed || video.readyState < 2 || !video.paused) return;
+        if (destroyed || !visible || document.hidden || video.readyState < 2 || !video.paused) return;
         video.play().catch(() => {});
       };
       for (const evt of ["loadedmetadata", "loadeddata", "canplay", "canplaythrough"]) {
@@ -296,7 +305,8 @@ export default function AsciiEffectCanvas({
       video.addEventListener("stalled", tryPlay);
       video.addEventListener("suspend", tryPlay);
       onVisibility = () => {
-        if (!document.hidden) tryPlay();
+        if (document.hidden) video.pause();
+        else tryPlay();
       };
       document.addEventListener("visibilitychange", onVisibility);
 
@@ -366,12 +376,6 @@ export default function AsciiEffectCanvas({
         canvas!.width = w;
         canvas!.height = h;
       }
-      // Keep the sampling buffer in sync even when the display canvas was
-      // sized before the first ResizeObserver callback.
-      if (srcBuffer.width !== w || srcBuffer.height !== h) {
-        srcBuffer.width = w;
-        srcBuffer.height = h;
-      }
       canvas!.style.width = `${rect.width}px`;
       canvas!.style.height = `${rect.height}px`;
     }
@@ -380,8 +384,19 @@ export default function AsciiEffectCanvas({
     ro.observe(container);
     resize();
 
+    // The picture only changes at the video's own rate and the shimmer is slow, so 24 frames a second looks identical
+    // and costs 60% of 60fps.
+    const FRAME_MS = 1000 / 24;
+    let lastDraw = 0;
+
     function draw(time: number) {
-      if (destroyed || !ctx || !sctx) return;
+      raf = 0;
+      if (destroyed || !visible || !ctx || !sctx) return;
+      if (time - lastDraw < FRAME_MS - 2) {
+        raf = requestAnimationFrame(draw);
+        return;
+      }
+      lastDraw = time;
       const cfg = configRef.current;
       const w = canvas!.width;
       const h = canvas!.height;
@@ -425,37 +440,49 @@ export default function AsciiEffectCanvas({
         ctx.restore();
       }
 
-      // --- Steps 2 & 4: draw filtered source into an offscreen buffer we sample from ---
+      // --- Steps 2 & 4: draw the filtered source into a tiny buffer, SAMPLE x SAMPLE pixels per cell ---
+      // The effect only ever reads one averaged colour per cell, so the buffer is the size of the cell grid (about
+      // 300x220) instead of the whole canvas (millions of pixels), and the browser's own downscale does the averaging.
+      const cell = Math.max(2, cfg.cellSize) * dpr;
+      const cols = Math.ceil(w / cell);
+      const rows = Math.ceil(h / cell);
+      const bw = cols * SAMPLE;
+      const bh = rows * SAMPLE;
+      if (srcBuffer.width !== bw || srcBuffer.height !== bh) {
+        srcBuffer.width = bw;
+        srcBuffer.height = bh;
+      }
+      const bScale = Math.max(bw / srcW, bh / srcH);
+      const biw = srcW * bScale;
+      const bih = srcH * bScale;
+      const bix = (bw - biw) / 2;
+      const biy = (bh - bih) / 2;
+
       const brightnessPct = 100 + cfg.brightness;
-      const blurPx = cfg.blurType !== "off" ? cfg.blurAmount / 10 : 0;
+      const blurPx = cfg.blurType !== "off" ? (cfg.blurAmount / 10) * (SAMPLE / cell) : 0;
       const invertPct = cfg.invert ? 100 : 0;
 
       sctx.save();
-      sctx.clearRect(0, 0, w, h);
+      sctx.clearRect(0, 0, bw, bh);
       sctx.filter = `brightness(${brightnessPct}%) contrast(${cfg.contrast}%) saturate(${cfg.saturation}%) grayscale(${cfg.grayscale}%) invert(${invertPct}%)${blurPx > 0 ? ` blur(${blurPx}px)` : ""}`;
-      sctx.drawImage(img, ix, iy, iw, ih);
+      sctx.drawImage(img, bix, biy, biw, bih);
       sctx.filter = "none";
       if (cfg.tintOpacity > 0) {
         sctx.globalCompositeOperation = cfg.overlayBlend || "multiply";
         sctx.globalAlpha = cfg.tintOpacity / 100;
         sctx.fillStyle = cfg.tint;
-        sctx.fillRect(0, 0, w, h);
+        sctx.fillRect(0, 0, bw, bh);
       }
       sctx.restore();
 
       let data: ImageData;
       try {
-        data = sctx.getImageData(0, 0, w, h);
+        data = sctx.getImageData(0, 0, bw, bh);
       } catch {
         raf = requestAnimationFrame(draw);
         return;
       }
       const pixels = data.data;
-
-      const cell = Math.max(2, cfg.cellSize) * dpr;
-      const cols = Math.ceil(w / cell);
-      const rows = Math.ceil(h / cell);
-      const step = Math.max(1, Math.floor(cell / 4));
 
       const t = time / 1000;
       const speed = cfg.animSpeed.enabled ? cfg.animSpeed.intensity / 40 : 0;
@@ -493,23 +520,18 @@ export default function AsciiEffectCanvas({
 
           let rSum = 0,
             gSum = 0,
-            bSum = 0,
-            count = 0;
-          for (let yy = 0; yy < ch; yy += step) {
-            for (let xx = 0; xx < cw; xx += step) {
-              const px = Math.min(w - 1, px0 + xx);
-              const py = Math.min(h - 1, py0 + yy);
-              const idx = (py * w + px) * 4;
+            bSum = 0;
+          for (let yy = 0; yy < SAMPLE; yy++) {
+            let idx = ((ry * SAMPLE + yy) * bw + rx * SAMPLE) * 4;
+            for (let xx = 0; xx < SAMPLE; xx++, idx += 4) {
               rSum += pixels[idx];
               gSum += pixels[idx + 1];
               bSum += pixels[idx + 2];
-              count++;
             }
           }
-          if (count === 0) continue;
-          const r = rSum / count;
-          const g = gSum / count;
-          const b = bSum / count;
+          const r = rSum / SAMPLE_COUNT;
+          const g = gSum / SAMPLE_COUNT;
+          const b = bSum / SAMPLE_COUNT;
           let lum = luminance01(r, g, b);
 
           const cx = px0 + cw / 2;
@@ -546,21 +568,24 @@ export default function AsciiEffectCanvas({
 
           switch (cfg.renderMode) {
             case "dither": {
-              const sub = 4;
-              const subSize = cell / sub;
-              for (let sy = 0; sy < sub; sy++) {
-                for (let sx = 0; sx < sub; sx++) {
-                  const threshold = (BAYER4[sy][sx] + 0.5) / 16;
-                  if (lum * inkBase > threshold) {
-                    ctx.fillStyle = color;
-                    ctx.fillRect(
-                      px0 + sx * subSize,
-                      py0 + sy * subSize,
-                      Math.ceil(subSize),
-                      Math.ceil(subSize)
-                    );
+              const subSize = cell / 4;
+              const subCeil = Math.ceil(subSize);
+              const level = lum * inkBase;
+              let started = false;
+              for (let sy = 0; sy < 4; sy++) {
+                for (let sx = 0; sx < 4; sx++) {
+                  if (level > DITHER_THRESHOLDS[sy * 4 + sx]) {
+                    if (!started) {
+                      ctx.beginPath();
+                      started = true;
+                    }
+                    ctx.rect(px0 + sx * subSize, py0 + sy * subSize, subCeil, subCeil);
                   }
                 }
+              }
+              if (started) {
+                ctx.fillStyle = color;
+                ctx.fill();
               }
               break;
             }
@@ -606,12 +631,10 @@ export default function AsciiEffectCanvas({
                 bG = 0,
                 bB = 0,
                 bC = 0;
-              for (let yy = 0; yy < ch; yy += step) {
-                for (let xx = 0; xx < cw; xx += step) {
-                  const px = Math.min(w - 1, px0 + xx);
-                  const py = Math.min(h - 1, py0 + yy);
-                  const idx = (py * w + px) * 4;
-                  if (yy < ch / 2) {
+              for (let yy = 0; yy < SAMPLE; yy++) {
+                for (let xx = 0; xx < SAMPLE; xx++) {
+                  const idx = ((ry * SAMPLE + yy) * bw + rx * SAMPLE + xx) * 4;
+                  if (yy < SAMPLE / 2) {
                     tR += pixels[idx];
                     tG += pixels[idx + 1];
                     tB += pixels[idx + 2];
@@ -785,9 +808,29 @@ export default function AsciiEffectCanvas({
 
     raf = requestAnimationFrame(draw);
 
+    // Stop drawing (and playing) while the canvas is off screen; pick up again a little before it scrolls back in.
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        const nowVisible = entry.isIntersecting;
+        if (nowVisible === visible) return;
+        visible = nowVisible;
+        if (visible) {
+          tryPlay();
+          if (!raf) raf = requestAnimationFrame(draw);
+        } else {
+          cancelAnimationFrame(raf);
+          raf = 0;
+          if (isVideo) (img as HTMLVideoElement).pause();
+        }
+      },
+      { rootMargin: "120px" },
+    );
+    io.observe(container);
+
     return () => {
       destroyed = true;
       cancelAnimationFrame(raf);
+      io.disconnect();
       ro.disconnect();
       if (watchdog) clearInterval(watchdog);
       if (onVisibility) document.removeEventListener("visibilitychange", onVisibility);

@@ -260,8 +260,26 @@ const MarqueeAlongSvgPath = ({
     { clamp: false }
   )
 
+  // Only animate while the marquee is on screen: off-screen it used to drive every item's motion values on every
+  // frame for nothing, which is main-thread time the rest of the page needs while scrolling.
+  const onScreen = useRef(true)
+  useEffect(() => {
+    const node = container.current
+    if (!node) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        onScreen.current = entry.isIntersecting
+      },
+      { rootMargin: "120px" }
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
   // Animation frame handler
   useAnimationFrame((_, delta) => {
+    if (!onScreen.current) return
+
     if (isDragging.current && draggable) {
       baseOffset.set(baseOffset.get() + dragVelocity.current)
 

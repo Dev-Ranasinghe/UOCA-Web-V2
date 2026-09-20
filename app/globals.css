@@ -279,6 +279,214 @@
   }
 }
 
+/* LYNX chat: the three "ooo" dots that pulse while it is working. */
+@keyframes lynx-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+.lynx-dot {
+  animation: lynx-dot 1.1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lynx-dot {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* LYNX mascot: little bits of life while it waits in the corner, and the speech bubble it pops up. */
+@keyframes lynx-hop {
+  0% {
+    transform: translateY(0) scale(1, 1);
+  }
+  18% {
+    transform: translateY(2px) scale(1.07, 0.9);
+  }
+  48% {
+    transform: translateY(-13px) scale(0.95, 1.06);
+  }
+  74% {
+    transform: translateY(0) scale(1.05, 0.95);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+
+@keyframes lynx-wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(-10deg);
+  }
+  45% {
+    transform: rotate(8deg);
+  }
+  70% {
+    transform: rotate(-5deg);
+  }
+}
+
+[data-lynx-act="hop"] {
+  animation: lynx-hop 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-lynx-act="wiggle"] {
+  animation: lynx-wiggle 0.8s ease-in-out;
+}
+
+/* These animate the individual translate/scale properties, the same ones Tailwind's -translate-y-1/2 sets, so the
+   bubble stays vertically centred on the mascot while it moves. */
+@keyframes lynx-bubble-in {
+  from {
+    opacity: 0;
+    translate: 8px -50%;
+    scale: 0.86;
+  }
+  to {
+    opacity: 1;
+    translate: 0 -50%;
+    scale: 1;
+  }
+}
+
+@keyframes lynx-bubble-out {
+  from {
+    opacity: 1;
+    translate: 0 -50%;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    translate: 4px -50%;
+    scale: 0.94;
+  }
+}
+
+.lynx-bubble {
+  transform-origin: right center;
+  animation: lynx-bubble-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.lynx-bubble[data-leaving="true"] {
+  animation: lynx-bubble-out 0.2s ease-in both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-lynx-act] {
+    animation: none;
+  }
+  .lynx-bubble,
+  .lynx-bubble[data-leaving="true"] {
+    animation-duration: 0.01s;
+  }
+}
+
+/* LYNX frost: the same "waterfall" wipe as the page curtain (components/PageTransition.tsx), but the sheet that sweeps
+   across is frosted glass. It sweeps in to cover the page when the chat opens and keeps going out the far edge when it closes,
+   like the curtain does. Same timings and easing (power4.inOut) as the curtain; keep them in step.
+   Direction follows where the chat sits. Phones and tablets (chat is a sheet from the bottom): the frost rises bottom to
+   top to cover, then clears top to bottom. From lg (1024px), where the chat is a card on the right: it covers right to left,
+   then clears left to right (back toward the right edge).
+   Being CSS, Radix waits for the close animation to finish before it removes the overlay. */
+@keyframes lynx-frost-up-in {
+  from {
+    clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+  }
+  to {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+}
+
+@keyframes lynx-frost-up-out {
+  from {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+  to {
+    clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+  }
+}
+
+@keyframes lynx-frost-side-in {
+  from {
+    clip-path: polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%);
+  }
+  to {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+}
+
+@keyframes lynx-frost-side-out {
+  from {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+  to {
+    clip-path: polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%);
+  }
+}
+
+.lynx-frost[data-state="open"] {
+  animation: lynx-frost-up-in 0.5s cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+
+.lynx-frost[data-state="closed"] {
+  animation: lynx-frost-up-out 0.8s cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+
+@media (min-width: 1024px) {
+  .lynx-frost[data-state="open"] {
+    animation-name: lynx-frost-side-in;
+  }
+  .lynx-frost[data-state="closed"] {
+    animation-name: lynx-frost-side-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lynx-frost[data-state] {
+    animation: none;
+  }
+}
+
+/* Membership application: the "RECEIVED" rubber stamp lands on the success card. */
+@keyframes stamp-thump {
+  0% {
+    opacity: 0;
+    transform: scale(1.7) rotate(-16deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.94) rotate(-7deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-6deg);
+  }
+}
+
+.stamp-thump {
+  transform: rotate(-6deg);
+  animation: stamp-thump 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp-thump {
+    animation: none;
+  }
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

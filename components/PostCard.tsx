@@ -30,8 +30,10 @@ interface PostCardProps {
   href?: string;
   /** optional short description shown below the title (e.g. for project cards) */
   description?: string;
-  /** For two-up grids on mobile: tighter padding, stacked meta, smaller title. Desktop/tablet unchanged. */
+  /** For two-up grids: tighter padding, stacked meta, smaller title. */
   compact?: boolean;
+  /** Where compact styling ends: "lg" (default) keeps it through tablet, "md" only on mobile. */
+  compactUntil?: "md" | "lg";
   /** Tailwind aspect class for the media box (default `aspect-[4/3]`). */
   mediaAspectClass?: string;
 }
@@ -56,6 +58,7 @@ export default function PostCard({
   href,
   description,
   compact = false,
+  compactUntil = "lg",
   mediaAspectClass = "aspect-[4/3]",
 }: PostCardProps) {
   // Ensure category is in sentence case (e.g. "Lifestyle", "Tech", "Food")
@@ -65,7 +68,7 @@ export default function PostCard({
   const media = (
     <div
       className={`relative bg-[#e0ddd5] border border-[#121212] overflow-hidden ${
-        horizontal ? "w-2/5 flex-shrink-0 aspect-[3/2]" : `w-full ${mediaAspectClass} ${compact ? "mb-3 md:mb-3.5" : "mb-3.5"}`
+        horizontal ? "w-2/5 flex-shrink-0 aspect-[3/2]" : `w-full ${mediaAspectClass} ${compact ? (compactUntil === "md" ? "mb-3 md:mb-3.5" : "mb-3 lg:mb-3.5") : "mb-3.5"}`
       }`}
     >
       {customMedia ?? (
@@ -95,7 +98,9 @@ export default function PostCard({
           horizontal
             ? "flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-0"
             : compact
-              ? "flex-col items-start gap-1 md:flex-row md:items-center md:justify-between md:gap-0"
+              ? compactUntil === "md"
+                ? "flex-col items-start gap-1 md:flex-row md:items-center md:justify-between md:gap-0"
+                : "flex-col items-start gap-1 lg:flex-row lg:items-center lg:justify-between lg:gap-0"
               : "items-center justify-between"
         } ${metaMono ? "font-mono" : "font-sans"}`}
       >
@@ -115,7 +120,9 @@ export default function PostCard({
           featured
             ? "text-2xl sm:text-3xl font-medium"
             : compact
-              ? "text-[17px] leading-[1.35] md:text-2xl md:leading-[1.5]"
+              ? compactUntil === "md"
+                ? "text-[17px] leading-[1.35] md:text-2xl md:leading-[1.5]"
+                : "text-[17px] leading-[1.35] md:text-xl lg:text-2xl lg:leading-[1.5]"
               : "text-xl sm:text-[22px] md:text-2xl"
         }`}
       >

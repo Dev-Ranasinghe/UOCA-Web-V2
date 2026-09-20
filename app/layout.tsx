@@ -6,6 +6,8 @@ import { Tinos, Plus_Jakarta_Sans, JetBrains_Mono, Arimo } from "next/font/googl
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import PageTransition from "@/components/PageTransition";
+import PageReveal from "@/components/PageReveal";
+import LynxRoot from "@/components/lynx/LynxRoot";
 
 const fontSerif = Tinos({
   variable: "--font-serif",
@@ -29,7 +31,7 @@ const fontMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "READO™ — Leo Club of Universities of Ceylon Alumni | Since 2016",
+  title: "UOCA - Leo Club",
   description: "Discover stories, initiatives, and ideas that showcase how passionate Leos come together to serve communities, inspire change, and create lasting impact.",
 };
 
@@ -45,7 +47,9 @@ export default function RootLayout({
     >
       <body className="min-h-screen flex flex-col bg-[#eae7e1] text-[#121212]">
         <PageTransition />
+        <PageReveal />
         {children}
+        <LynxRoot />
       </body>
     </html>
   );

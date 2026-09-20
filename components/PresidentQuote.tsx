@@ -17,8 +17,8 @@ export default function PresidentQuote() {
             src="/images/elephant.png"
             alt="Elephant Stipple Illustration - Leo Club of UOC Alumni"
             fill
+            sizes="(min-width: 512px) 480px, 100vw"
             className="object-cover object-center"
-            priority
           />
         </div>
       </div>

@@ -210,12 +210,16 @@ const Auralis = ({
     const ro = new ResizeObserver(resize);
     ro.observe(container);
 
-    // Don't burn the GPU on a background nobody can see.
-    const io = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
-      if (visible) start();
-      else stop();
-    });
+    // Don't burn the GPU on a background nobody can see. It starts a screen early so the GPU's first-draw warm-up
+    // happens off screen instead of as a hitch while it scrolls into view.
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+        if (visible) start();
+        else stop();
+      },
+      { rootMargin: "100% 0px" },
+    );
     io.observe(container);
 
     resize();

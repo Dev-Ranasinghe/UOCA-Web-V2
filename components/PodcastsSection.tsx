@@ -64,6 +64,7 @@ export default function PodcastsSection() {
                     src="/images/elephant.png"
                     alt={pod.title}
                     fill
+                    sizes="(min-width: 640px) 25vw, 100vw"
                     className="object-cover opacity-20 mix-blend-multiply"
                   />
                   <div className="relative z-10 font-sans font-black text-xs uppercase tracking-widest text-[#121212]">

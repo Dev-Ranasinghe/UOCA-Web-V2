@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Search, Mail, Zap, Heart, Briefcase, Utensils, Plane, Laptop, Sparkles, UserPlus } from "lucide-react";
-import SectionDivider from "@/components/SectionDivider";
 import MobileNavPanel from "@/components/MobileNavPanel";
 
 interface NavbarProps {
@@ -20,28 +19,45 @@ export default function Navbar({ activePage = "HOME" }: NavbarProps) {
 
   useEffect(() => {
     lastScrollY.current = window.scrollY;
+    let shown = true;
+    let frame = 0;
 
-    const handleScroll = () => {
+    const setShown = (next: boolean) => {
+      if (next === shown) return;
+      shown = next;
+      setShowNav(next);
+    };
+
+    // At most once per frame, and only touches React when the bar actually has to move.
+    const update = () => {
+      frame = 0;
       const currentY = window.scrollY;
 
       if (currentY < 80) {
-        setShowNav(true);
+        setShown(true);
       } else if (currentY > lastScrollY.current) {
-        setShowNav(false);
+        setShown(false);
       } else if (currentY < lastScrollY.current) {
-        setShowNav(true);
+        setShown(true);
       }
 
       lastScrollY.current = currentY;
     };
+    const handleScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      cancelAnimationFrame(frame);
+    };
   }, []);
 
-  // The full-screen menu is mobile-only; make sure it never stays open (or locks scroll) on a wider screen.
+  // The full-screen menu replaces the link row below xl (1280px), where the row would not fit; make sure it never
+  // stays open (or locks scroll) once the screen is wide enough for the row.
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
+    const mq = window.matchMedia("(min-width: 1280px)");
     const onChange = () => {
       if (mq.matches) setMobileMenuOpen(false);
     };
@@ -63,21 +79,20 @@ export default function Navbar({ activePage = "HOME" }: NavbarProps) {
     <>
       {/* Top Header Row: sticky, and slides away on scroll-down / reappears on scroll-up */}
       <header
-        className={`sticky top-0 z-50 w-full bg-[#eae7e1] text-[#121212] md:border-b md:border-[#121212] transition-transform duration-300 ${
+        className={`sticky top-0 z-50 w-full bg-[#eae7e1] text-[#121212] border-b border-[#121212] transition-transform duration-300 ${
           showNav || mobileMenuOpen ? "translate-y-0" : "-translate-y-full"
         }`}
       >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-3.5 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 xl:py-3.5 flex items-center justify-between">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-1">
-          <span className="font-sans font-black text-[1.75rem] md:text-2xl tracking-tighter uppercase">
-            READO
+          <span className="font-serif font-bold text-[1.75rem] xl:text-2xl tracking-tight uppercase">
+            UOCA
           </span>
-          <span className="text-[10px] font-mono align-super font-bold">TM</span>
         </Link>
 
         {/* Desktop Navigation Links */}
-        <div className="hidden md:flex items-center gap-6 text-xs font-mono font-semibold tracking-wider">
+        <div className="hidden xl:flex items-center gap-6 text-xs font-mono font-semibold tracking-wider">
           <Link
             href="/"
             className={`hover:opacity-75 transition-opacity flex items-center gap-1 ${
@@ -181,7 +196,7 @@ export default function Navbar({ activePage = "HOME" }: NavbarProps) {
         </div>
 
         {/* Mobile Actions: search, subscribe, menu */}
-        <div className="flex items-center gap-2.5 md:hidden">
+        <div className="flex items-center gap-2.5 xl:hidden">
           <button
             type="button"
             onClick={() => setSearchOpen(!searchOpen)}
@@ -222,14 +237,9 @@ export default function Navbar({ activePage = "HOME" }: NavbarProps) {
         </div>
       </div>
 
-      {/* Mobile: the plus-ended divider under the header row */}
-      <div className="md:hidden px-4 sm:px-6 pb-0">
-        <SectionDivider />
-      </div>
-
       {/* Mobile Search Overlay */}
       {searchOpen && (
-        <div className="md:hidden px-4 py-2 bg-[#dfdcd5] border-t border-b border-[#121212]">
+        <div className="xl:hidden px-4 py-2 bg-[#dfdcd5] border-t border-[#121212]">
           <div className="relative flex items-center">
             <Search className="w-4 h-4 absolute left-3 text-[#555]" />
             <input
@@ -251,17 +261,22 @@ export default function Navbar({ activePage = "HOME" }: NavbarProps) {
       {/* Banner block: scrolls away normally, not part of the sticky bar */}
       <div className="w-full bg-[#eae7e1] text-[#121212]">
         {/* Giant Hero READO Banner */}
-        <div className="w-full overflow-hidden bg-[#eae7e1] pt-8 pb-5 md:py-6">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="relative w-full" style={{ aspectRatio: "2172 / 208" }}>
-              <Image
-                src="/images/uoc-alumni-logo.png"
-                alt="UOC Alumni"
-                fill
-                className="object-cover"
-                style={{ objectPosition: "center 47%" }}
-                priority
-              />
+        <div className="w-full overflow-hidden bg-[#eae7e1]">
+          {/* Same side padding as the header row so the wordmark lines up with the divider ends. The wordmark is
+              ~7.8:1 (height = 12.8% of its width) and the space above/below it is a share of that same width, so the
+              whole block scales as one piece, as in the Reado reference (a little shorter and tighter than it). */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="pt-[3.5%] pb-[3.5%] xl:pt-[3%] xl:pb-[3.4%]">
+              <div className="relative w-full aspect-[2144/430] md:aspect-[2144/275]">
+                <Image
+                  src="/images/uoc-alumni-wordmark.png"
+                  alt="UOC Alumni"
+                  fill
+                  sizes="(min-width: 1280px) 1216px, 100vw"
+                  className="object-fill"
+                  priority
+                />
+              </div>
             </div>
           </div>
         </div>

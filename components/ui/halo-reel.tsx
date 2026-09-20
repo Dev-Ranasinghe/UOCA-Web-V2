@@ -116,6 +116,20 @@ export function HaloReel({
   const rotation = useMotionValue(0);
   const draggingRef = React.useRef(false);
   const hoverRef = React.useRef(false);
+  // Autoplay only spins the ring while it is on screen (it used to keep animating every card while scrolled away).
+  const onScreenRef = React.useRef(true);
+  React.useEffect(() => {
+    const node = stageRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        onScreenRef.current = entry.isIntersecting;
+      },
+      { rootMargin: "120px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   const [size, setSize] = React.useState({ w: 0, h: 0 });
   React.useEffect(() => {
@@ -176,7 +190,7 @@ export function HaloReel({
 
     const tick = () => {
       timer = window.setTimeout(() => {
-        if (draggingRef.current || (pauseOnHover && hoverRef.current)) {
+        if (draggingRef.current || !onScreenRef.current || (pauseOnHover && hoverRef.current)) {
           tick();
           return;
         }

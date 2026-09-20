@@ -6,6 +6,10 @@ import { prisma } from "@/lib/prisma";
 
 const PLACEHOLDER_IMAGE = "/images/elephant.png";
 
+// These pages read the database but were prerendered once at build time, so a project or member added in the admin never
+// showed up until the next deploy. Statically served, refreshed in the background at most once a minute.
+export const revalidate = 60;
+
 export default async function CategoriesPage() {
   const categories = await prisma.category.findMany({
     where: { kind: { in: ["BLOG", "GENERAL"] } },
@@ -39,6 +43,7 @@ export default async function CategoriesPage() {
                     src={cat.image?.url ?? PLACEHOLDER_IMAGE}
                     alt={cat.name}
                     fill
+                    sizes="(min-width: 640px) 192px, 100vw"
                     className="object-cover transition-transform duration-300"
                   />
                 </div>

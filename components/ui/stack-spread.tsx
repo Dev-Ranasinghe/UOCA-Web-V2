@@ -14,18 +14,16 @@ import {
 } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
-const IMG_BASE =
-  "https://pub-8abee449136941f5b0a1cd2c014534e9.r2.dev/vault-listing-images/assets-images/stack-spread";
-
+// Club photos (public/images/impact), one per card.
 const IMG = {
-  plane: `${IMG_BASE}/img1.png`,
-  painting: `${IMG_BASE}/img2.png`,
-  breaker: `${IMG_BASE}/img3.png`,
-  dog: `${IMG_BASE}/img4.png`,
-  footballer: `${IMG_BASE}/img5.png`,
-  jacket: `${IMG_BASE}/img6.png`,
-  meadow: `${IMG_BASE}/img7.png`,
-  stripes: `${IMG_BASE}/img8.png`,
+  handover: "/images/impact/handover.webp",
+  lamp: "/images/impact/lamp-lighting.webp",
+  graduation: "/images/impact/graduation.webp",
+  awards: "/images/impact/awards-night.webp",
+  tokens: "/images/impact/tokens-of-appreciation.webp",
+  medal: "/images/impact/club-medal.webp",
+  members: "/images/impact/members.webp",
+  runnersUp: "/images/impact/runners-up.webp",
 } as const;
 
 // per-image rest scale, keyed by img index (1-8). default 1, drop below to shrink.
@@ -43,83 +41,83 @@ const s = (i: number) => SCALE[i] ?? 1;
 
 // array order = stack order, back (z 2) -> front (z 9)
 const CARDS: StackSpreadCard[] = [
-  // top-left stripes (img08) — sm row 1 left
+  // top-left stripes — sm row 1 left
   {
-    item: { src: IMG.stripes, alt: "Colour stripes" },
+    item: { src: IMG.members, alt: "Two Leos posing together outdoors" },
     number: "HOLAAA",
     stackOffset: { x: -8, y: -10 },
     stackRotate: -18,
-    target: { x: -20, y: -34, rotate: 0, scale: s(8), w: 17, h: 22 },
+    target: { x: -20, y: -30, rotate: 0, scale: s(8), w: 14 },
     targetSm: { x: -22, y: -40 },
     z: 2,
   },
-  // top-right meadow (img07) — sm row 1 right
+  // top-right meadow — sm row 1 right
   {
-    item: { src: IMG.meadow, alt: "Wildflower meadow" },
+    item: { src: IMG.runnersUp, alt: "Runners-up award presented to the Leo Club of UOC Alumni on stage" },
     number: "HOLAAA",
     stackOffset: { x: 14, y: -10 },
     stackRotate: 20,
-    target: { x: 32, y: -30, rotate: 0, scale: s(7), w: 18, h: 32 },
+    target: { x: 32, y: -26, rotate: 0, scale: s(7), w: 18 },
     targetSm: { x: 22, y: -40 },
     z: 3,
   },
-  // mid-left jacket (img06) — sm row 2 left
+  // mid-left jacket — sm row 2 left
   {
-    item: { src: IMG.jacket, alt: "Figure in a leather jacket" },
+    item: { src: IMG.tokens, alt: "Two members exchanging tokens of appreciation on stage" },
     number: "HOLAAA",
     stackOffset: { x: -16, y: 0 },
     stackRotate: -4,
-    target: { x: -36, y: -2, rotate: 0, scale: s(6), w: 15, h: 32 },
+    target: { x: -36, y: -2, rotate: 0, scale: s(6), w: 17 },
     targetSm: { x: -22, y: -19 },
     z: 4,
   },
-  // top-centre footballer (img05) — sm row 2 right
+  // top-centre footballer — sm row 2 right
   {
-    item: { src: IMG.footballer, alt: "Footballer mid-kick" },
+    item: { src: IMG.graduation, alt: "Alumni in graduation gowns gathered outdoors, in black and white" },
     number: "HOLAAA",
     stackOffset: { x: 1, y: -10 },
     stackRotate: -2,
-    target: { x: 6, y: -32, rotate: 0, scale: s(5), w: 25, h: 30 },
+    target: { x: 6, y: -27, rotate: 0, scale: s(5), w: 20 },
     targetSm: { x: 22, y: -19 },
     z: 5,
   },
-  // mid-right dog (img04) — sm row 3 left
+  // mid-right dog — sm row 3 left
   {
-    item: { src: IMG.dog, alt: "Terrier in profile" },
+    item: { src: IMG.handover, alt: "Two club leaders at the presidential handover on stage" },
     number: "HOLAAA",
     stackOffset: { x: 18, y: 1 },
     stackRotate: 6,
-    target: { x: 37, y: 6, rotate: 0, scale: s(4), w: 18, h: 32 },
+    target: { x: 37, y: 6, rotate: 0, scale: s(4), w: 19 },
     targetSm: { x: -22, y: 20 },
     z: 6,
   },
-  // bottom-left breaker (img03) — sm row 3 right
+  // bottom-left breaker — sm row 3 right
   {
-    item: { src: IMG.breaker, alt: "Breakdancer holding a pose" },
+    item: { src: IMG.awards, alt: "Members receiving an award on stage at the annual conference" },
     number: "HOLAAA",
     stackOffset: { x: -6, y: 10 },
     stackRotate: 6,
-    target: { x: -24, y: 34, rotate: 0, scale: s(3), w: 22, h: 25 },
+    target: { x: -24, y: 31, rotate: 0, scale: s(3), w: 18 },
     targetSm: { x: 22, y: 20 },
     z: 7,
   },
-  // bottom-centre painting (img02) — sm row 4 left
+  // bottom-centre painting — sm row 4 left
   {
-    item: { src: IMG.painting, alt: "Renaissance fresco detail" },
+    item: { src: IMG.lamp, alt: "A guest lighting the traditional oil lamp at a Leo Club ceremony" },
     number: "HOLAAA",
     stackOffset: { x: 8, y: 7 },
     stackRotate: 3,
-    target: { x: 2, y: 36, rotate: 0, scale: s(2), w: 20, h: 26 },
+    target: { x: 2, y: 33, rotate: 0, scale: s(2), w: 18 },
     targetSm: { x: -22, y: 40 },
     z: 8,
   },
-  // bottom-right plane (img01) — sm row 4 right
+  // bottom-right plane — sm row 4 right
   {
-    item: { src: IMG.plane, alt: "Vintage fighter plane" },
+    item: { src: IMG.medal, alt: "Leo Club of UOC Alumni 2026/27 medallion: Passion Meets Purpose" },
     number: "HOLAAA",
     stackOffset: { x: 20, y: 12 },
     stackRotate: -7,
-    target: { x: 30, y: 34, rotate: 0, scale: s(1), w: 16, h: 20 },
+    target: { x: 30, y: 34, rotate: 0, scale: s(1), w: 15 },
     targetSm: { x: 22, y: 40 },
     z: 9,
   },
@@ -141,20 +139,21 @@ const PARALLAX_SPRING = { stiffness: 90, damping: 22, mass: 0.6 };
 const parallaxDepth = (i: number, total: number) =>
   total <= 1 ? 1 : 0.55 + (i / (total - 1)) * 0.75;
 
-const SUB = "Digital products, interfaces, and experiences built around people.";
+const SUB =
+  "Moments, accolades, and dedicated members defining our journey at the Leo Club of UOC Alumni.";
 
 const RESPONSIVE = {
   desktop: {
     scale: null as number | null,
     small: false,
     colX: null as number | null,
-    card: null as { w: number; h: number } | null,
+    card: null as { w: number } | null,
   },
   small: {
     scale: 0.72,
     small: true,
     colX: 22,
-    card: { w: 40, h: 20 },
+    card: { w: 40 },
   },
 };
 
@@ -219,8 +218,8 @@ export interface StackSpreadTarget {
   y: number;
   rotate: number;
   scale?: number;
+  /** side length of the (square) card, in vw */
   w: number;
-  h: number;
 }
 
 export interface StackSpreadCard {
@@ -260,7 +259,7 @@ function Card({
   scaleMul: number | null;
   isSmall: boolean;
   colX: number | null;
-  fixedCard: { w: number; h: number } | null;
+  fixedCard: { w: number } | null;
   /** scale of the cards while clustered, before the scatter */
   stackScale: number;
   /** corner radius on each card, in px (desktop) */
@@ -304,8 +303,9 @@ function Card({
     <motion.div
       className="absolute left-1/2 top-1/2 will-change-transform"
       style={{
+        // Square: width and height share one unit, so the card keeps its shape at any window size.
         width: `${fixedCard ? fixedCard.w : target.w}vw`,
-        height: `${fixedCard ? fixedCard.h : target.h}vh`,
+        height: `${fixedCard ? fixedCard.w : target.w}vw`,
         zIndex: card.z ?? 1,
         translate,
         rotate,
@@ -429,19 +429,13 @@ function StackSpreadStage({
           }}
         >
           <h2
-            className="font-serif w-full whitespace-pre-line text-[4.5vw] font-bold leading-none! tracking-tight max-md:text-[10vw]"
+            className="font-serif w-full text-[4.5vw] font-bold leading-none! tracking-tight max-md:text-[10vw]"
             style={{ color: textColor }}
           >
-            Design
-
-           <span className="opacity-60"> {" "}
-              That
-               {" "}
-              </span>
-              Responds.
+            Impact <span className="opacity-60">Through</span> Action.
           </h2>
           <p
-            className="font-sans mt-[1.2vw] w-full max-w-[42ch] text-[1.15vw] leading-relaxed tracking-tight max-md:mt-3 max-md:text-[3.6vw]"
+            className="font-sans mt-[1.2vw] w-full max-w-[52ch] text-[1.15vw] leading-relaxed tracking-tight max-md:mt-3 max-md:text-[3.6vw]"
             style={{ color: textColor, opacity: 0.6 }}
           >
             {SUB}

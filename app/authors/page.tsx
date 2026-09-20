@@ -5,6 +5,10 @@ import { prisma } from "@/lib/prisma";
 
 const PLACEHOLDER_IMAGE = "/images/elephant.png";
 
+// These pages read the database but were prerendered once at build time, so a project or member added in the admin never
+// showed up until the next deploy. Statically served, refreshed in the background at most once a minute.
+export const revalidate = 60;
+
 export default async function AuthorsPage() {
   const members = await prisma.member.findMany({
     where: { isAuthor: true, isActive: true },

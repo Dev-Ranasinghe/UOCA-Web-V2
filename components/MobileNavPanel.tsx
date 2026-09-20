@@ -54,7 +54,7 @@ export default function MobileNavPanel({
       overlayBg="#050505"
       clipOrigin="top"
       initialFocusRef={closeRef}
-      className="z-40 md:hidden"
+      className="z-40 xl:hidden"
     >
       {(isOpen) => (
         <PanelContent isOpen={isOpen} onClose={onClose} activePage={activePage} closeRef={closeRef} />

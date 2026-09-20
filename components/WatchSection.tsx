@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Play } from "lucide-react";
 import SectionDivider from "@/components/SectionDivider";
+import { HalftoneDots } from "@/components/ui/halftone-dots";
 
 export default function WatchSection() {
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -46,11 +47,14 @@ export default function WatchSection() {
   ];
 
   return (
-    <section className="section-dark w-full bg-[#050505] text-white px-4 sm:px-6 border-t border-b border-[#222]">
-      <div className="max-w-7xl mx-auto">
+    <section className="section-dark relative w-full bg-[#050505] text-white px-4 sm:px-6 border-t border-b border-[#222] overflow-hidden">
+      {/* Halftone dots behind the cards. (The neon dither this replaced is kept in components/ui/neon-dither.tsx.) */}
+      <HalftoneDots dotSize={16} className="pointer-events-none absolute inset-0 h-full w-full" />
+
+      <div className="relative z-10 max-w-7xl mx-auto">
         {/* Header Bar */}
         <div className="flex items-center justify-between">
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-white">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-white [text-shadow:0_0_14px_rgba(0,0,0,0.85)]">
             Watch
           </h2>
           <Link
@@ -64,7 +68,7 @@ export default function WatchSection() {
         <SectionDivider dark spaced />
 
         {/* Main Featured Video */}
-        <div className="border border-[#eae7e1] bg-[#111111] p-4 sm:p-5 rounded-none md:rounded-sm mb-6">
+        <div className="border border-[#eae7e1] bg-[#111111] p-4 sm:p-5 rounded-none mb-6">
           <div className="flex items-center gap-2 text-xs font-mono text-[#888] mb-3">
             <span>ooo</span>
             <div className="flex-1 border-b border-dashed border-[#eae7e1]/40"></div>
@@ -78,6 +82,7 @@ export default function WatchSection() {
                 src="/images/elephant.png"
                 alt={mainVideo.title}
                 fill
+                sizes="(min-width: 1024px) 58vw, 100vw"
                 className="object-cover transition-transform duration-300"
               />
               <button
@@ -113,7 +118,7 @@ export default function WatchSection() {
           {videoCards.map((vid) => (
             <div
               key={vid.id}
-              className="border border-[#eae7e1] bg-[#111111] p-4 rounded-none md:rounded-sm flex flex-col justify-between"
+              className="border border-[#eae7e1] bg-[#111111] p-4 rounded-none flex flex-col justify-between"
             >
               <div className="flex items-center gap-2 text-[11px] font-mono text-[#888] mb-3">
                 <span>ooo</span>
@@ -126,6 +131,7 @@ export default function WatchSection() {
                   src="/images/elephant.png"
                   alt={vid.title}
                   fill
+                  sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 100vw"
                   className="object-cover transition-transform duration-300"
                 />
                 <button
@@ -138,15 +144,15 @@ export default function WatchSection() {
               </div>
 
               <div>
-                <div className="flex flex-col items-start gap-1 md:flex-row md:items-center md:justify-between md:gap-0 text-xs md:text-[11px] font-sans text-[#aaa] mb-2">
-                  <span className="font-normal text-white text-sm md:text-[11px] md:font-semibold md:uppercase">
+                <div className="flex flex-col items-start gap-1 lg:flex-row lg:items-center lg:justify-between lg:gap-0 text-xs lg:text-[11px] font-sans text-[#aaa] mb-2">
+                  <span className="font-normal text-white text-sm lg:text-[11px] lg:font-semibold lg:uppercase">
                     {vid.category}
                   </span>
                   <span>
                     by {vid.author} | {vid.readTime}
                   </span>
                 </div>
-                <h4 className="font-serif text-xl md:text-lg font-semibold text-white leading-snug">
+                <h4 className="font-serif text-xl lg:text-lg font-semibold text-white leading-snug">
                   {vid.title}
                 </h4>
               </div>
