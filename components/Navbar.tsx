@@ -3,12 +3,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Mail, Zap, Heart, Briefcase, Utensils, Plane, Laptop, Sparkles, UserPlus } from "lucide-react";
+import { Search, Mail, UserPlus } from "lucide-react";
 import MobileNavPanel from "@/components/MobileNavPanel";
+import Ticker from "@/components/Ticker";
 
 interface NavbarProps {
   activePage?: string;
 }
+
+/** The black strip under the wordmark scrolls these, in this order, forever. */
+const TICKER_ITEMS = ["Lions Club of Galkissa", "Leo District 306 D1", "Leo Multiple District 306 Sri Lanka & Maldives"];
 
 export default function Navbar({ activePage = "HOME" }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -64,16 +68,6 @@ export default function Navbar({ activePage = "HOME" }: NavbarProps) {
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, []);
-
-  const categories = [
-    { label: "FINANCE", icon: Zap },
-    { label: "HEALTH", icon: Heart },
-    { label: "BUSINESS", icon: Briefcase },
-    { label: "FOOD", icon: Utensils },
-    { label: "TRAVEL", icon: Plane },
-    { label: "LIFESTYLE", icon: Sparkles },
-    { label: "TECH", icon: Laptop },
-  ];
 
   return (
     <>
@@ -281,28 +275,8 @@ export default function Navbar({ activePage = "HOME" }: NavbarProps) {
           </div>
         </div>
 
-        {/* Category Ticker Bar */}
-        <div className="w-full bg-[#0d0d0d] text-white text-xs font-mono py-2.5 border-t border-b border-[#121212] overflow-x-auto">
-          <div className="max-w-7xl mx-auto px-4 flex items-center justify-between min-w-max gap-6 md:gap-8">
-            {categories.map((cat, idx) => {
-              const Icon = cat.icon;
-              return (
-                <React.Fragment key={cat.label}>
-                  <Link
-                    href={`/blog?category=${cat.label.toLowerCase()}`}
-                    className="flex items-center gap-2 hover:text-[#f0c808] transition-colors font-semibold tracking-wider uppercase text-[11px] sm:text-xs"
-                  >
-                    <Icon className="w-3.5 h-3.5 text-[#f0c808]" />
-                    <span>{cat.label}</span>
-                  </Link>
-                  {idx < categories.length - 1 && (
-                    <span className="text-[#444] font-normal">|</span>
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </div>
-        </div>
+        {/* Scrolling text strip: moves left, pauses on hover, static for reduced motion (see components/Ticker.tsx) */}
+        <Ticker items={TICKER_ITEMS} label="Lions Club of Galkissa, Leo District 306 D1, Leo Multiple District 306 Sri Lanka and Maldives" />
       </div>
     </>
   );

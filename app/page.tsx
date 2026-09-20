@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import PostCard from "@/components/PostCard";
 import AsciiEffectCanvas, { AsciiEffectConfig } from "@/components/AsciiEffectCanvas";
 import NewsletterStamp from "@/components/NewsletterStamp";
+import Ticker from "@/components/Ticker";
 import PresidentQuote from "@/components/PresidentQuote";
 import WatchSection from "@/components/WatchSection";
 import PodcastsSection from "@/components/PodcastsSection";
@@ -179,6 +180,18 @@ export default async function HomePage() {
             />
           </div>
         </section>
+
+        {/* Second text strip, centred in the gap under the hero. This wrapper is zero height with no margin of its own and
+            the strip floats inside the gap, so the Impact section below keeps exactly the position and height it had. */}
+        <div className="relative h-0" style={{ marginTop: 0 }}>
+          <div className="absolute inset-x-0 top-[calc(var(--section-gap)/2)] -translate-y-1/2">
+            <Ticker
+              items={["Leoistic Year 2026/27", "Under the Presidency of Leo Sasun Wijeratne", "Passion Meets Purpose"]}
+              label="Leoistic Year 2026/27, under the presidency of Leo Sasun Wijeratne, Passion Meets Purpose"
+              reverse
+            />
+          </div>
+        </div>
 
       {/* Stack Spread */}
       <div data-reveal="none">

@@ -275,6 +275,49 @@ html.preloader-lock {
   color: #ffffff;
 }
 
+/*
+ * The scrolling text strips (components/Ticker.tsx). The track holds the same row several times; it slides by exactly
+ * one row (--ticker-shift, set per strip) and starts over, which looks like one endless line. Only `transform` animates, so it runs
+ * on the compositor and does not cost anything while the page scrolls. The text fades into the black at both ends
+ * (the mask is on an inner wrapper, so the bar itself stays solid), it pauses on hover, and for reduced motion it
+ * stops and shows one static row you can scroll sideways.
+ */
+@keyframes ticker-scroll {
+  to {
+    transform: translate3d(var(--ticker-shift, -25%), 0, 0);
+  }
+}
+.ticker {
+  overflow: hidden;
+}
+.ticker-fade {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
+}
+.ticker-track {
+  animation: ticker-scroll 32s linear infinite;
+  will-change: transform;
+}
+.ticker:hover .ticker-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker {
+    overflow-x: auto;
+  }
+  .ticker-fade {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .ticker-track {
+    animation: none;
+    will-change: auto;
+  }
+  .ticker-copy[aria-hidden="true"] {
+    display: none;
+  }
+}
+
 /* Custom button hover effects */
 .btn-black {
   background-color: #121212;
