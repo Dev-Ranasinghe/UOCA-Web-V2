@@ -274,6 +274,7 @@ export default function AsciiEffectCanvas({
     // False while the canvas is scrolled out of view: nothing is drawn and the video is paused, so an off-screen
     // effect costs nothing (it used to keep the main thread busy the whole time the visitor scrolled elsewhere).
     let visible = true;
+    let shown = false;
 
     if (isVideo) {
       const video = document.createElement("video");
@@ -801,6 +802,12 @@ export default function AsciiEffectCanvas({
         }
       }
 
+      // The canvas starts transparent and fades in once the first frame is painted, instead of popping in.
+      if (!shown) {
+        shown = true;
+        canvas!.style.opacity = "1";
+      }
+
       // Video always needs a live loop — its frames change independently of
       // the ASCII animation setting.
       if (cfg.animated || isVideo) raf = requestAnimationFrame(draw);
@@ -850,7 +857,11 @@ export default function AsciiEffectCanvas({
       className={`relative w-full h-full overflow-hidden ${className}`}
       style={style}
     >
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full block transition-opacity duration-700 motion-reduce:transition-none"
+        style={{ opacity: 0 }}
+      />
     </div>
   );
 }

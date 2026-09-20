@@ -72,16 +72,20 @@ export default function CommunityFloating() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
         {/* Left: 3D sphere of member photos */}
         <div className="flex justify-center order-2 lg:order-1">
-          <SphereImageGrid
-            images={images}
-            containerSize={containerSize}
-            sphereRadius={containerSize * 0.42}
-            baseImageScale={0.16}
-            dragSensitivity={0.6}
-            momentumDecay={0.95}
-            autoRotate
-            autoRotateSpeed={0.25}
-          />
+          {/* The space is reserved in CSS at the same breakpoints useSphereSize uses, so the section doesn't grow
+              (and push everything below it) when the client measures the screen and swaps the size in. */}
+          <div className="grid size-[300px] place-items-center sm:size-[380px] lg:size-[460px]">
+            <SphereImageGrid
+              images={images}
+              containerSize={containerSize}
+              sphereRadius={containerSize * 0.42}
+              baseImageScale={0.16}
+              dragSensitivity={0.6}
+              momentumDecay={0.95}
+              autoRotate
+              autoRotateSpeed={0.25}
+            />
+          </div>
         </div>
 
         {/* Right: heading + copy */}
