@@ -1,17 +1,22 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import Countdown from "@/components/Countdown";
+import { UPDATE_DEADLINE_ISO, UPDATE_DEADLINE_TEXT } from "@/lib/update-deadline";
 
 interface ComingSoonProps {
   title: string;
   activePage?: string;
   description?: string;
+  /** Names what is being updated ("newsletter", "calendar") and turns on the countdown to the update deadline. */
+  updating?: string;
 }
 
 export default function ComingSoon({
   title,
   activePage,
   description = "We're putting the finishing touches on this page. Check back soon.",
+  updating,
 }: ComingSoonProps) {
   return (
     <div className="min-h-screen flex flex-col bg-[#eae7e1] text-[#121212]">
@@ -29,8 +34,27 @@ export default function ComingSoon({
             {title}
           </h1>
           <p className="font-sans text-sm sm:text-base text-[#555] max-w-md mx-auto mb-8 leading-relaxed">
-            {description} Will be updated ASAP.
+            {updating ? (
+              <>
+                The {updating} will be updated by{" "}
+                <time dateTime={UPDATE_DEADLINE_ISO} className="font-semibold text-[#121212]">
+                  {UPDATE_DEADLINE_TEXT}
+                </time>
+                .
+              </>
+            ) : (
+              <>{description} Will be updated ASAP.</>
+            )}
           </p>
+
+          {updating ? (
+            <div className="mb-10">
+              <Countdown
+                until={UPDATE_DEADLINE_ISO}
+                doneText={`The update is due now. If the ${updating} looks the same, check back in a little while.`}
+              />
+            </div>
+          ) : null}
 
           <Link
             href="/"
