@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ShoppingBag } from "lucide-react";
 import HalftoneBanner from "@/components/HalftoneBanner";
+import SectionDivider from "@/components/SectionDivider";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -16,7 +16,10 @@ export default function Footer() {
 
   return (
     <>
-      <HalftoneBanner />
+      {/* One section-gap above the footer on every page. */}
+      <div className="mt-[var(--section-gap)]">
+        <HalftoneBanner />
+      </div>
       <footer className="w-full bg-[#000000] text-white pt-12 pb-8 border-t-2 border-[#121212] font-sans">
       {/* Plus-Dashed Top Divider Line */}
       <div className="max-w-7xl mx-auto px-4 mb-10 flex items-center gap-2 text-xs font-mono text-[#555]">
@@ -28,7 +31,7 @@ export default function Footer() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 pb-12 border-b border-[#222]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 md:gap-10 lg:gap-8 pb-0 md:pb-12 md:border-b border-[#222]">
           {/* Left Column: Brand & Newsletter */}
           <div className="lg:col-span-5 flex flex-col justify-between">
             <div>
@@ -75,13 +78,13 @@ export default function Footer() {
           </div>
 
           {/* Right Columns: Links */}
-          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-8">
+          <div className="lg:col-span-7 flex flex-col md:grid md:grid-cols-3 md:gap-8">
             {/* Pages */}
-            <div className="border-l border-[#222] pl-4 sm:pl-6">
+            <div className="md:border-l border-[#222] md:pl-6">
               <h5 className="font-serif text-base font-semibold text-white mb-4">
                 Pages
               </h5>
-              <ul className="space-y-2 text-xs font-mono text-[#aaa]">
+              <ul className="flex flex-wrap gap-x-5 gap-y-2.5 md:block md:space-y-2 text-xs font-mono text-[#aaa]">
                 <li>
                   <Link href="/" className="hover:text-white transition-colors">
                     HOME
@@ -120,12 +123,14 @@ export default function Footer() {
               </ul>
             </div>
 
+            <SectionDivider dark className="my-5 opacity-50 md:hidden" />
+
             {/* Categories */}
-            <div className="border-l border-[#222] pl-4 sm:pl-6">
+            <div className="md:border-l border-[#222] md:pl-6">
               <h5 className="font-serif text-base font-semibold text-white mb-4">
                 Categories
               </h5>
-              <ul className="space-y-2 text-xs font-mono text-[#aaa]">
+              <ul className="flex flex-wrap gap-x-5 gap-y-2.5 md:block md:space-y-2 text-xs font-mono text-[#aaa]">
                 <li>
                   <Link href="/blog?category=finance" className="hover:text-white transition-colors">
                     FINANCE
@@ -164,12 +169,14 @@ export default function Footer() {
               </ul>
             </div>
 
+            <SectionDivider dark className="my-5 opacity-50 md:hidden" />
+
             {/* Socials */}
-            <div className="border-l border-[#222] pl-4 sm:pl-6">
+            <div className="md:border-l border-[#222] md:pl-6">
               <h5 className="font-serif text-base font-semibold text-white mb-4">
                 Socials
               </h5>
-              <ul className="space-y-2 text-xs font-mono text-[#aaa]">
+              <ul className="flex flex-wrap gap-x-5 gap-y-2.5 md:block md:space-y-2 text-xs font-mono text-[#aaa]">
                 <li>
                   <a href="https://facebook.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
                     FACEBOOK
@@ -197,27 +204,17 @@ export default function Footer() {
                 </li>
               </ul>
             </div>
+            <SectionDivider dark className="my-5 opacity-50 md:hidden" />
           </div>
         </div>
 
         {/* Bottom Credits & Copyright */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#777] font-sans">
+        <div className="pt-0 md:pt-8 flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between md:gap-4 text-xs text-[#777] font-sans">
           <div>
             Designed by <span className="text-white font-medium">DANDY STUDIOS</span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <span>© 2026 Reado. All rights reserved</span>
-
-            {/* Floating Get it for FREE badge */}
-            <Link
-              href="/subscribe"
-              className="hidden sm:inline-flex items-center gap-1.5 bg-white text-black px-3 py-1 rounded text-xs font-mono font-bold hover:bg-[#eae7e1] transition-colors"
-            >
-              <span>Get it for FREE</span>
-              <ShoppingBag className="w-3.5 h-3.5" />
-            </Link>
-          </div>
+          <span>© 2026 Dandy Studios.</span>
         </div>
       </div>
       </footer>

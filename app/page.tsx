@@ -1,6 +1,3 @@
-"use client";
-
-import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
@@ -13,7 +10,45 @@ import PodcastsSection from "@/components/PodcastsSection";
 import Footer from "@/components/Footer";
 import SectionDivider from "@/components/SectionDivider";
 import Testimonials from "@/components/Testimonials";
+import FaqSection from "@/components/FaqSection";
+import CommunityFloating from "@/components/CommunityFloating";
 import StackSpread from "@/components/ui/stack-spread";
+import { HaloReel, type HaloReelItem } from "@/components/ui/halo-reel";
+import MarqueeAlongSvgPath from "@/components/ui/marquee-along-svg-path";
+import { prisma } from "@/lib/prisma";
+
+// Placeholder images until real community photos are ready.
+// Square crops (w=h) so each tile renders as a square, matching the
+// component's original reference demo.
+const marqueeImages = [
+  "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=400&h=400&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=400&h=400&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=400&h=400&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=400&h=400&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=400&h=400&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=400&h=400&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?q=80&w=400&h=400&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1518837695005-2083093ee35b?q=80&w=400&h=400&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=400&h=400&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1504893524553-b855bce32c67?q=80&w=400&h=400&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=400&h=400&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?q=80&w=400&h=400&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=400&h=400&auto=format&fit=crop",
+];
+
+const marqueePath =
+  "M1 209.434C58.5872 255.935 387.926 325.938 482.583 209.434C600.905 63.8051 525.516 -43.2211 427.332 19.9613C329.149 83.1436 352.902 242.723 515.041 267.302C644.752 286.966 943.56 181.94 995 156.5";
+
+// Placeholder banner until real flyer artwork for each project is ready —
+// swap `src` in each entry for the actual flyer image once available.
+const currentProjects: HaloReelItem[] = [
+  { src: "/images/elephant.png", alt: "Blood Drive" },
+  { src: "/images/elephant.png", alt: "Beach Cleanup" },
+  { src: "/images/elephant.png", alt: "Tech For Good" },
+  { src: "/images/elephant.png", alt: "Fellowship Night" },
+  { src: "/images/elephant.png", alt: "Outreach Camp" },
+  { src: "/images/elephant.png", alt: "Global Partners" },
+];
 
 const heroAsciiConfig: AsciiEffectConfig = {
   pfx: {
@@ -81,57 +116,13 @@ const heroAsciiConfig: AsciiEffectConfig = {
   directionalBothSides: false,
 };
 
-export default function HomePage() {
-  const recentPosts = [
-    {
-      id: "22",
-      number: "022",
-      category: "Tech",
-      author: "Emily Johnson",
-      readTime: "7 min read",
-      title: "How e-commerce is redefining global shopping trends",
-    },
-    {
-      id: "21",
-      number: "021",
-      category: "Lifestyle",
-      author: "Jacob Anderson",
-      readTime: "6 min read",
-      title: "Exploring minimalist living: a beginner's perspective",
-    },
-    {
-      id: "20",
-      number: "020",
-      category: "Travel",
-      author: "Sophia Harris",
-      readTime: "5 min read",
-      title: "Five underrated destinations for your next holiday",
-    },
-    {
-      id: "17",
-      number: "017",
-      category: "Food",
-      author: "Ethan Miller",
-      readTime: "6 min read",
-      title: "Ten easy recipes for busy weeknight cooking",
-    },
-    {
-      id: "14",
-      number: "014",
-      category: "Tech",
-      author: "Emily Johnson",
-      readTime: "6 min read",
-      title: "Healthy habits that actually improve your sleep",
-    },
-    {
-      id: "13",
-      number: "013",
-      category: "Business",
-      author: "Jacob Anderson",
-      readTime: "5 min read",
-      title: "Simple strategies to improve your daily focus",
-    },
-  ];
+export default async function HomePage() {
+  const recentProjects = await prisma.project.findMany({
+    where: { status: "PUBLISHED" },
+    include: { coverImage: true, chairperson: true },
+    orderBy: { updatedAt: "desc" },
+    take: 6,
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-[#eae7e1] text-[#121212]">
@@ -139,9 +130,9 @@ export default function HomePage() {
       <Navbar activePage="HOME" />
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-16">
+      <main className="section-stack flex-1 w-full pt-[calc(var(--section-gap)/2)]">
         {/* Top Hero Section */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Heading & Newsletter */}
           <div className="lg:col-span-5 flex flex-col justify-between h-full pt-2">
             <div>
@@ -184,45 +175,127 @@ export default function HomePage() {
             />
           </div>
         </section>
-      </main>
 
       {/* Stack Spread */}
-      <div className="my-8 sm:my-12">
+      <div>
         <StackSpread bgColor="#eae7e1" cardRadius={0} />
       </div>
 
-      <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 space-y-24 sm:space-y-32">
-        {/* Recent Posts Section */}
-        <section>
-          <div className="flex items-center justify-between">
+      <>
+        {/* Recent Project Updates Section */}
+        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
             <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-[#121212]">
-              Recent posts
+              Recent project updates
             </h2>
             <Link
-              href="/blog"
+              href="/projects"
               className="bg-[#121212] text-white px-4 py-2 rounded-full text-xs font-mono font-bold tracking-wider hover:bg-[#333] transition-colors"
             >
-              VIEW ALL POSTS
+              VIEW ALL PROJECTS
             </Link>
           </div>
 
-          <SectionDivider className="mt-8 mb-8" />
+          <SectionDivider spaced />
 
-          {/* 6-Grid Posts (3x2 Desktop, 2x3 Tablet, 1x6 Mobile) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recentPosts.map((post) => (
-              <PostCard key={post.id} {...post} />
+          {/* 6-Grid Posts (3x2 Desktop, 2x3 Tablet and Mobile; tighter gap on mobile) */}
+          <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
+            {recentProjects.map((project, index) => (
+              <PostCard
+                key={project.id}
+                compact
+                href={`/projects/${project.slug}`}
+                number={String(index + 1).padStart(3, "0")}
+                category={
+                  project.startDate
+                    ? project.startDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })
+                    : "Project"
+                }
+                metaLabel={project.chairperson ? `Chair: ${project.chairperson.displayName}` : ""}
+                author=""
+                readTime=""
+                title={project.name}
+                description={project.shortDescription}
+                imageUrl={project.coverImage?.url}
+              />
             ))}
           </div>
         </section>
 
+        {/* Current Projects Section */}
+        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-[#121212]">
+            Happening right now
+          </h2>
+
+          <SectionDivider spaced />
+
+          <HaloReel
+            items={currentProjects}
+            aria-label="Current club projects"
+            centerLabel={
+              <span className="font-serif text-[3vw] sm:text-[2.4vw] lg:text-[1.8vw] font-bold tracking-tight text-[#121212]">
+                Our projects
+              </span>
+            }
+            cardWidth={170}
+            cardHeight={235}
+            minScale={0.4}
+            radiusYRatio={0.36}
+            centerXRatio={0.035}
+            holdDuration={1000}
+            stepDuration={700}
+            className="h-[560px]"
+          />
+        </section>
+      </>
+
+      {/* Community Spotlight Section (Dark Theme Full Width, Placeholder) */}
+      <section className="section-dark w-full bg-black border-t border-b border-[#222]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-white text-center">
+            [Placeholder Section Title]
+          </h2>
+        </div>
+
+        <div className="w-full h-[320px] sm:h-[420px] mt-10 overflow-hidden">
+          <MarqueeAlongSvgPath
+            path={marqueePath}
+            viewBox="0 0 996 330"
+            baseVelocity={8}
+            slowdownOnHover
+            draggable
+            repeat={2}
+            dragSensitivity={0.1}
+            className="w-full h-full scale-105"
+            responsive
+            grabCursor
+          >
+            {marqueeImages.map((src, i) => (
+              <div
+                key={i}
+                className="w-14 h-full hover:scale-150 duration-300 ease-in-out"
+              >
+                <img
+                  src={src}
+                  alt={`Community highlight ${i + 1}`}
+                  className="w-full h-full object-cover"
+                  draggable={false}
+                />
+              </div>
+            ))}
+          </MarqueeAlongSvgPath>
+        </div>
+      </section>
+
+      <>
         {/* Editor's Choice Section */}
-        <section>
+        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-[#121212]">
             Editor&apos;s choice
           </h2>
 
-          <SectionDivider className="mt-8 mb-8" />
+          <SectionDivider spaced />
 
           <div className="border border-[#121212] bg-[#f7f5f0] p-4 sm:p-5 rounded-sm">
             <div className="card-header-line mb-4">
@@ -255,7 +328,7 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-      </div>
+      </>
 
       {/* Watch Section (Dark Theme Full Width) */}
       <WatchSection />
@@ -264,7 +337,7 @@ export default function HomePage() {
       <PresidentQuote />
 
       {/* Full-width Ad Banner */}
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 my-16 sm:my-24">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
         <div className="relative aspect-[6/1] w-full border border-[#121212] overflow-hidden bg-[#222] rounded-sm group flex items-center justify-center">
           <Image
             src="/images/elephant.png"
@@ -282,17 +355,18 @@ export default function HomePage() {
       </div>
 
       {/* Discover More Stories */}
-      <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-24 sm:my-32">
+      <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#121212]">
           Discover more stories
         </h2>
 
-        <SectionDivider className="mt-8 mb-8" />
+        <SectionDivider spaced />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-6 items-start">
           {/* Left Column (2 Stacked Cards) */}
-          <div className="lg:col-span-4 space-y-6">
+          <div className="grid grid-cols-2 gap-3 md:block md:space-y-6 lg:col-span-4">
             <PostCard
+              compact
               id="10"
               number="010"
               category="Finance"
@@ -301,6 +375,7 @@ export default function HomePage() {
               title="A guide to building stronger personal finances"
             />
             <PostCard
+              compact
               id="9"
               number="009"
               category="Business"
@@ -313,19 +388,21 @@ export default function HomePage() {
           {/* Center Column (Tall Center Story Card) */}
           <div className="lg:col-span-5 h-full">
             <PostCard
+              compact
               id="8"
               number="008"
               category="Business"
               author="Michael Smith"
               readTime="4 min read"
               title="Exploring the intersection of technology and wellness"
+              mediaAspectClass="aspect-[16/9] md:aspect-[4/3]"
               className="h-full"
             />
           </div>
 
           {/* Right Column (Text-only List & Ad Card) */}
-          <div className="lg:col-span-3 space-y-6">
-            <div className="border border-[#121212] bg-[#f7f5f0] p-4 rounded-sm space-y-4">
+          <div className="space-y-5 md:space-y-6 lg:col-span-3">
+            <div className="space-y-4 md:border md:border-[#121212] md:bg-[#f7f5f0] md:p-4 md:rounded-sm">
               <div className="border-b border-[#121212] pb-3">
                 <h4 className="font-serif text-base font-bold text-[#121212] leading-snug">
                   <Link href="/blog/7" className="hover:underline">
@@ -348,7 +425,7 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div>
+              <div className="border-b border-[#121212] pb-3 md:border-b-0 md:pb-0">
                 <h4 className="font-serif text-base font-bold text-[#121212] leading-snug">
                   <Link href="/blog/5" className="hover:underline">
                     Top exercises to strengthen your core and back
@@ -361,7 +438,7 @@ export default function HomePage() {
             </div>
 
             {/* Square Ad Banner */}
-            <div className="relative aspect-square w-full border border-[#121212] overflow-hidden bg-[#222] rounded-sm flex items-center justify-center p-4 text-center">
+            <div className="relative aspect-[8/5] w-full border border-[#121212] overflow-hidden bg-[#222] rounded-sm flex items-center justify-center p-4 text-center md:aspect-square">
               <Image
                 src="/images/elephant.png"
                 alt="Ad banner"
@@ -382,10 +459,16 @@ export default function HomePage() {
       {/* Podcasts Section */}
       <PodcastsSection />
 
+      {/* Meet the backbone of UOCA */}
+      <CommunityFloating />
+
+      {/* FAQ (dark, animated Auralis background) */}
+      <FaqSection />
+
       {/* Testimonials */}
       <Testimonials />
+      </main>
 
-      {/* Footer */}
       <Footer />
     </div>
   );

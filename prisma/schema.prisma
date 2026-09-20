@@ -1,0 +1,351 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Admins & auth ──────────────────────────────────────────
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+}
+
+model Admin {
+  id          String    @id @default(cuid())
+  authUserId  String    @unique // Supabase auth.users.id — source of truth for login
+  email       String    @unique
+  displayName String
+  avatarUrl   String?
+  role        AdminRole @default(ADMIN)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  activityLogs  ActivityLog[]
+  uploadedMedia Media[]
+}
+
+// ── People / Members (reused everywhere) ──────
+
+enum MemberTeamCategory {
+  EXCO
+  HEAD
+  DIRECTOR
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum RelationshipStatus {
+  SINGLE
+  TAKEN
+  LOOKING
+  NOT_INTERESTED
+}
+
+enum ParticipantRole {
+  LEO
+  LION
+  GUEST
+  VOLUNTEER
+  PARTNER
+}
+
+model Member {
+  id             String  @id @default(cuid())
+  slug           String  @unique
+  fullName       String
+  displayName    String
+  profileImageId String?
+  profileImage   Media?  @relation("MemberProfileImage", fields: [profileImageId], references: [id])
+  email          String?
+  phone          String?
+  leoDesignation String?
+  clubRole       String?
+  bio            String?
+  socialLinks    Json? // { linkedin?, instagram?, whatsapp? }
+  isActive       Boolean @default(true)
+
+  mylciId            String? // Lions Clubs International (MyLCI) member ID
+  birthDate          DateTime?
+  gender             Gender?
+  relationshipStatus RelationshipStatus?
+  city               String?
+
+  // Leo history — either they're new (no prior experience to record), or
+  // leoExperience holds their previous club(s)/designation(s) as free text.
+  isNewLeo      Boolean @default(true)
+  leoExperience String?
+
+  isTeamMember Boolean             @default(false)
+  teamCategory MemberTeamCategory?
+  teamSortOrder Int                @default(0) // display order within teamCategory on the public Team page
+  isAuthor     Boolean             @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chairedProjects       Project[]            @relation("ProjectChairperson")
+  secretaryProjects     Project[]            @relation("ProjectSecretary")
+  treasurerProjects     Project[]            @relation("ProjectTreasurer")
+  articleAuthorships    ArticleAuthor[]
+  articleParticipations ArticleParticipant[]
+}
+
+// ── Shared taxonomy ──────────────────────────────────────────
+
+enum CategoryKind {
+  PROJECT
+  BLOG
+  GENERAL
+}
+
+model Category {
+  id          String       @id @default(cuid())
+  name        String
+  slug        String       @unique
+  description String?
+  imageId     String?
+  image       Media?       @relation("CategoryImage", fields: [imageId], references: [id])
+  kind        CategoryKind @default(GENERAL)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  articles Article[]
+}
+
+model Tag {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  projectTags ProjectTag[]
+  articleTags ArticleTag[]
+}
+
+// ── Media library ────────────────────────────
+
+model Media {
+  id           String   @id @default(cuid())
+  storagePath  String   @unique // path inside the Supabase Storage bucket
+  url          String // public/signed URL
+  fileName     String
+  mimeType     String
+  size         Int
+  width        Int?
+  height       Int?
+  altText      String?
+  caption      String?
+  uploadedById String?
+  uploadedBy   Admin?   @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+
+  memberProfiles  Member[]       @relation("MemberProfileImage")
+  categoryImages  Category[]     @relation("CategoryImage")
+  projectCovers   Project[]      @relation("ProjectCover")
+  projectOgImages Project[]      @relation("ProjectOgImage")
+  projectGallery  ProjectMedia[]
+  articleFeatured Article[]      @relation("ArticleFeaturedImage")
+  articleOgImages Article[]      @relation("ArticleOgImage")
+  articleGallery  ArticleMedia[]
+}
+
+// ── Locations ─────────────────────────────────
+
+model Location {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  city      String?
+  district  String?
+  province  String?
+  country   String?
+  mapUrl    String?
+  latitude  Float?
+  longitude Float?
+  createdAt DateTime @default(now())
+
+  articles Article[]
+}
+
+// ── Projects ───────────────────────────────────
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Project {
+  id               String        @id @default(cuid())
+  slug             String        @unique
+  name             String
+  shortDescription String
+  status           ContentStatus @default(DRAFT)
+
+  coverImageId String?
+  coverImage   Media?         @relation("ProjectCover", fields: [coverImageId], references: [id])
+  gallery      ProjectMedia[]
+  tags         ProjectTag[]
+
+  startDate DateTime?
+  endDate   DateTime?
+
+  chairpersonId String?
+  chairperson   Member? @relation("ProjectChairperson", fields: [chairpersonId], references: [id], onDelete: SetNull)
+  secretaryId   String?
+  secretary     Member? @relation("ProjectSecretary", fields: [secretaryId], references: [id], onDelete: SetNull)
+  treasurerId   String?
+  treasurer     Member? @relation("ProjectTreasurer", fields: [treasurerId], references: [id], onDelete: SetNull)
+
+  metaTitle       String?
+  metaDescription String?
+  ogImageId       String?
+  ogImage         Media?  @relation("ProjectOgImage", fields: [ogImageId], references: [id])
+
+  articles Article[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+
+  @@index([status])
+  @@index([startDate])
+}
+
+model ProjectTag {
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, tagId])
+}
+
+model ProjectMedia {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     Media   @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  caption   String?
+  sortOrder Int     @default(0)
+
+  @@unique([projectId, mediaId])
+}
+
+// ── Articles — Project Articles AND Blog Articles share one   ──
+// ── model; `projectId == null` is a general Blog Article      ──
+
+model Article {
+  id       String @id @default(cuid())
+  slug     String @unique
+  title    String
+  subtitle String?
+  excerpt  String?
+  content  Json // Tiptap/ProseMirror JSON
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  featuredImageId String?
+  featuredImage   Media?         @relation("ArticleFeaturedImage", fields: [featuredImageId], references: [id])
+  gallery         ArticleMedia[]
+  tags            ArticleTag[]
+
+  authors      ArticleAuthor[]
+  participants ArticleParticipant[]
+
+  // event-specific info — relevant for both project sessions and blog events
+  eventDate  DateTime?
+  startTime  String?
+  endTime    String?
+  locationId String?
+  location   Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+
+  externalLinks Json? // [{ label, url }]
+
+  status      ContentStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  metaTitle       String?
+  metaDescription String?
+  ogImageId       String?
+  ogImage         Media?  @relation("ArticleOgImage", fields: [ogImageId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([publishedAt])
+}
+
+model ArticleAuthor {
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  memberId  String
+  member    Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  sortOrder Int     @default(0)
+
+  @@id([articleId, memberId])
+}
+
+model ArticleParticipant {
+  id        String          @id @default(cuid())
+  articleId String
+  article   Article         @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  memberId  String
+  member    Member          @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  role      ParticipantRole @default(LEO)
+
+  @@unique([articleId, memberId])
+}
+
+model ArticleTag {
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+}
+
+model ArticleMedia {
+  id        String  @id @default(cuid())
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     Media   @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  caption   String?
+  sortOrder Int     @default(0)
+
+  @@unique([articleId, mediaId])
+}
+
+// ── Activity log ──────────────────────────────
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  adminId     String?
+  admin       Admin?   @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  action      String // "create" | "update" | "publish" | "unpublish" | "delete" | "archive"
+  entityType  String // "project" | "article" | "member" | ...
+  entityId    String
+  entityLabel String // denormalized title/name, survives entity deletion
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}

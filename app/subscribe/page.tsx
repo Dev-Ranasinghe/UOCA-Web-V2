@@ -17,9 +17,9 @@ export default function SubscribePage() {
     <div className="min-h-screen flex flex-col bg-[#eae7e1] text-[#121212]">
       <Navbar activePage="SUBSCRIBE" />
 
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-16 flex flex-col items-center justify-center">
+      <main className="page-container max-w-4xl flex-1 pt-[var(--section-gap-half)] flex flex-col items-center justify-center">
         {/* Large Dashed Stamp Card */}
-        <div className="w-full stamp-container p-8 sm:p-14 rounded-sm text-center my-8">
+        <div className="w-full stamp-container p-8 sm:p-14 rounded-sm text-center">
           <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold text-[#121212] mb-4">
             Stay in the loop
           </h1>
@@ -48,7 +48,7 @@ export default function SubscribePage() {
         </div>
 
         {/* Social Icons */}
-        <div className="flex items-center gap-3 font-sans text-xs text-[#555] my-6">
+        <div className="flex items-center gap-3 font-sans text-xs text-[#555] mt-6">
           <span>Stay connected:</span>
           <div className="flex items-center gap-2">
             <a

@@ -32,12 +32,12 @@ export default function PodcastsSection() {
   ];
 
   return (
-    <section className="w-full my-24 sm:my-32 max-w-7xl mx-auto px-4 sm:px-6">
+    <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#121212]">
         Podcasts
       </h2>
 
-      <SectionDivider className="mt-8 mb-8" />
+      <SectionDivider spaced />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {podcasts.map((pod) => {

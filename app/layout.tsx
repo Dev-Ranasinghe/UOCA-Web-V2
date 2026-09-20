@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
-import Preloader from "@/components/Preloader";
-import { Pointer } from "@/components/ui/pointer";
+import { Tinos, Plus_Jakarta_Sans, JetBrains_Mono, Arimo } from "next/font/google";
+// Preloader disabled at the user's request (2026-09-19) — it was getting stuck
+// fully opaque, hiding the whole site. Re-add `<Preloader />` below when asked.
+// import Preloader from "@/components/Preloader";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+import PageTransition from "@/components/PageTransition";
 
-const fontSerif = Playfair_Display({
+const fontSerif = Tinos({
   variable: "--font-serif",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["400", "700"],
   display: "swap",
 });
 
-const fontSans = Plus_Jakarta_Sans({
+const fontSans = Arimo({
   variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -38,11 +41,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fontSerif.variable} ${fontSans.variable} ${fontMono.variable} antialiased`}
+      className={cn("antialiased", fontSerif.variable, fontMono.variable, "font-sans", fontSans.variable)}
     >
       <body className="min-h-screen flex flex-col bg-[#eae7e1] text-[#121212]">
-        <Preloader />
-        <Pointer />
+        <PageTransition />
         {children}
       </body>
     </html>

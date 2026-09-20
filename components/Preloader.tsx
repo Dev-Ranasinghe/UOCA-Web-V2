@@ -1,25 +1,28 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import gsap from "gsap";
 
 const WORDS = [
   "Hello",
-  "ආයුබෝවන්", // Sinhala
   "नमस्ते", // Hindi
-  "こんにちは", // Japanese
-  "你好", // Chinese
-  "안녕하세요", // Korean
   "Bonjour", // French
-  "Ciao", // Italian
+  "こんにちは", // Japanese
+  "Guten tag", // German
+  "你好", // Chinese
   "Olá", // Portuguese
   "Hallå", // Swedish
-  "Guten tag", // German
+  "안녕하세요", // Korean
+  "Ciao", // Italian
   "Hallo", // Dutch
+  "ආයුබෝවන්", // Sinhala
 ];
 const BG = "#eae7e1";
 
 export default function Preloader() {
+  const pathname = usePathname();
+  const isAdmin = pathname?.startsWith("/admin") ?? false;
   const preloaderRef = useRef<HTMLDivElement>(null);
   const wordElRef = useRef<HTMLParagraphElement>(null);
   const wordTextRef = useRef<HTMLSpanElement>(null);
@@ -27,6 +30,10 @@ export default function Preloader() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
+    // The admin dashboard skips the branded language-cycling intro entirely —
+    // it needs to load instantly for someone trying to get work done.
+    if (isAdmin) return;
+
     const preloader = preloaderRef.current;
     const wordEl = wordElRef.current;
     const wordText = wordTextRef.current;
@@ -114,9 +121,9 @@ export default function Preloader() {
       finish.kill();
       document.body.style.overflow = "";
     };
-  }, []);
+  }, [isAdmin]);
 
-  if (done) return null;
+  if (done || isAdmin) return null;
 
   return (
     <div
@@ -129,7 +136,6 @@ export default function Preloader() {
         className="absolute z-[2] flex items-center opacity-0 text-[#121212]"
         style={{ fontSize: 42, lineHeight: 1 }}
       >
-        <span className="block w-2.5 h-2.5 mr-2.5 rounded-full bg-[#121212] shrink-0" />
         <span ref={wordTextRef} />
       </p>
 

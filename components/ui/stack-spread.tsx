@@ -130,8 +130,10 @@ const CARDS: StackSpreadCard[] = [
 // ---------------------------------------------------------------------------
 
 // Scroll progress where the cluster starts scattering and where it finishes.
-const SCATTER_START = 0.12;
-const SCATTER_END = 0.9;
+// Kept tight so the cards start responding almost as soon as the section is
+// scrolled into — a long hold here reads as scroll lag.
+const SCATTER_START = 0.05;
+const SCATTER_END = 0.85;
 
 const PARALLAX_X = 2.6;
 const PARALLAX_Y = 2.2;
@@ -369,7 +371,7 @@ interface StackSpreadStageProps {
 
 function StackSpreadStage({
   cards,
-  scrollLength = 350,
+  scrollLength = 260,
   bgColor = "#ececeb",
   clusterRotation = true,
   stackScale = 0.82,
@@ -514,7 +516,7 @@ export interface StackSpreadProps {
 }
 
 export default function StackSpread({
-  scrollLength = 350,
+  scrollLength = 260,
   bgColor = "#ececeb",
   clusterRotation = true,
   stackScale = 0.82,

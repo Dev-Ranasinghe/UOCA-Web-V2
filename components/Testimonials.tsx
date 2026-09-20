@@ -59,7 +59,7 @@ const thirdColumn = testimonials.slice(6, 9);
 
 export default function Testimonials() {
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-16">
+    <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -74,9 +74,9 @@ export default function Testimonials() {
         </p>
       </motion.div>
 
-      <SectionDivider className="mt-6 mb-8" />
+      <SectionDivider spaced />
 
-      <div className="flex justify-center gap-6 mt-10 [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)] max-h-[740px] overflow-hidden">
+      <div className="flex justify-center gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)] max-h-[740px] overflow-hidden">
         <TestimonialsColumn testimonials={firstColumn} duration={15} />
         <TestimonialsColumn
           testimonials={secondColumn}

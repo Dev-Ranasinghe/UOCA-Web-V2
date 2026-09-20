@@ -1,4 +1,51 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--bg-main);
+  --color-foreground: var(--text-primary);
+  --color-card: var(--bg-card);
+  --color-card-foreground: var(--text-primary);
+  --color-muted: var(--border-subtle);
+  --color-muted-foreground: var(--text-muted);
+  --color-ring: var(--border-dark);
+  --font-heading: var(--font-sans);
+  --font-sans: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
 
 @layer base {
   :root {
@@ -15,14 +62,14 @@
     color: var(--text-primary);
     font-family: var(--font-sans), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    @apply bg-background text-foreground;
   }
-}
-
-/* Custom heart pointer replaces the native cursor across the whole site */
-*,
-*::before,
-*::after {
-  cursor: none !important;
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
 }
 
 .font-serif {
@@ -74,6 +121,101 @@
   border-bottom: 1px dashed #777777;
 }
 
+/*
+ * Vertical rhythm for the home page.
+ * One unit sets every gap between sections and the top/bottom padding of dark sections, so
+ * spacing reads the same everywhere. Values are measured from the Reado reference screenshots
+ * (about 88px mobile / 176px desktop, 2x captures); tablet sits between the two.
+ * Sections inside a .section-stack get the unit as space above; sections marked .section-dark
+ * pad themselves with it, and two dark sections in a row touch (their padding does the work).
+ */
+:root {
+  --section-gap: 5.5rem;
+}
+@media (min-width: 48rem) {
+  :root {
+    --section-gap: 8rem;
+  }
+}
+@media (min-width: 64rem) {
+  :root {
+    --section-gap: 11rem;
+  }
+}
+
+/* Space above and below a section's divider line: 20px on mobile (as in the reference), 32px from md up. */
+:root {
+  --divider-gap: 1.25rem;
+}
+@media (min-width: 48rem) {
+  :root {
+    --divider-gap: 2rem;
+  }
+}
+
+/* Half a unit: space above the first thing on a page, and between a page header and its content. */
+:root {
+  --section-gap-half: calc(var(--section-gap) / 2);
+}
+
+.section-stack {
+  display: flex;
+  flex-direction: column;
+}
+.section-stack > * + * {
+  margin-top: var(--section-gap);
+}
+.section-stack > .page-header + * {
+  margin-top: var(--section-gap-half);
+}
+.section-stack > .section-dark + .section-dark {
+  margin-top: 0;
+}
+.section-dark {
+  padding-block: var(--section-gap);
+}
+
+/* The one horizontal frame every page uses, so section edges line up from page to page.
+   Layered (components) so a utility such as max-w-6xl can still narrow it. */
+@layer components {
+  .page-container {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 40rem) {
+    .page-container {
+      padding-inline: 1.5rem;
+    }
+  }
+  @media (min-width: 64rem) {
+    .page-container {
+      padding-inline: 2rem;
+    }
+  }
+}
+
+/*
+ * Page curtain (components/PageTransition.tsx). It is in the server HTML so first paint is already covered;
+ * if scripts never run, this failsafe uncovers the page after 5s. JS cancels it as soon as it takes over.
+ * Reduced-motion users never see the curtain at all.
+ */
+@keyframes page-curtain-failsafe {
+  to {
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+.page-curtain {
+  animation: page-curtain-failsafe 0.01s linear 5s forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-curtain {
+    display: none;
+  }
+}
+
 /* Card Title Highlight Effect on Box Hover */
 .highlight-text-on-hover {
   box-decoration-break: clone;
@@ -90,8 +232,6 @@
   color: #121212;
 }
 
-
-
 /* Giant hero title text effect */
 .hero-reado-title {
   font-family: var(--font-sans);
@@ -100,7 +240,6 @@
   line-height: 0.85;
   text-transform: uppercase;
 }
-
 
 /* Category ticker styling */
 .ticker-bar {
@@ -120,3 +259,91 @@
   transform: translateY(-1px);
 }
 
+/* Leo ID floating card */
+@keyframes leo-id-float {
+  0%, 100% {
+    transform: translateY(0) rotate(-0.6deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(0.6deg);
+  }
+}
+
+.leo-id-float {
+  animation: leo-id-float 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leo-id-float {
+    animation: none;
+  }
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}

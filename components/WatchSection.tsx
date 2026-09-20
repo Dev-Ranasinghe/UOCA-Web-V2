@@ -46,7 +46,7 @@ export default function WatchSection() {
   ];
 
   return (
-    <section className="w-full bg-[#050505] text-white py-20 sm:py-28 px-4 sm:px-6 border-t border-b border-[#222]">
+    <section className="section-dark w-full bg-[#050505] text-white px-4 sm:px-6 border-t border-b border-[#222]">
       <div className="max-w-7xl mx-auto">
         {/* Header Bar */}
         <div className="flex items-center justify-between">
@@ -61,19 +61,19 @@ export default function WatchSection() {
           </Link>
         </div>
 
-        <SectionDivider dark className="mt-8 mb-8" />
+        <SectionDivider dark spaced />
 
         {/* Main Featured Video */}
-        <div className="border border-[#333] bg-[#111111] p-4 sm:p-5 rounded-sm mb-6">
+        <div className="border border-[#eae7e1] bg-[#111111] p-4 sm:p-5 rounded-none md:rounded-sm mb-6">
           <div className="flex items-center gap-2 text-xs font-mono text-[#888] mb-3">
             <span>ooo</span>
-            <div className="flex-1 border-b border-dashed border-[#444]"></div>
+            <div className="flex-1 border-b border-dashed border-[#eae7e1]/40"></div>
             <span>[NO. {mainVideo.number}]</span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
             {/* Thumbnail Box */}
-            <div className="lg:col-span-7 relative aspect-video w-full bg-[#1a1a1a] border border-[#333] overflow-hidden group">
+            <div className="lg:col-span-7 relative aspect-[3/2] md:aspect-video w-full bg-[#1a1a1a] border border-[#eae7e1] overflow-hidden group">
               <Image
                 src="/images/elephant.png"
                 alt={mainVideo.title}
@@ -90,14 +90,14 @@ export default function WatchSection() {
             </div>
 
             {/* Info Box */}
-            <div className="lg:col-span-5 flex flex-col justify-between h-full py-2">
+            <div className="lg:col-span-5 flex flex-col-reverse gap-2 md:flex-col md:gap-0 justify-between h-full md:py-2">
               <div>
-                <h3 className="font-serif text-2xl sm:text-3xl font-semibold leading-tight text-white mb-4">
+                <h3 className="font-serif text-xl md:text-3xl font-semibold leading-tight text-white md:mb-4">
                   {mainVideo.title}
                 </h3>
               </div>
-              <div className="flex items-center justify-between text-xs font-sans text-[#aaa]">
-                <span className="font-semibold text-white uppercase tracking-wider">
+              <div className="flex flex-col items-start gap-1 md:flex-row md:items-center md:justify-between md:gap-0 text-xs font-sans text-[#aaa]">
+                <span className="font-normal text-white text-sm md:text-xs md:font-semibold md:uppercase md:tracking-wider">
                   {mainVideo.category}
                 </span>
                 <span>
@@ -113,15 +113,15 @@ export default function WatchSection() {
           {videoCards.map((vid) => (
             <div
               key={vid.id}
-              className="border border-[#333] bg-[#111111] p-4 rounded-sm flex flex-col justify-between"
+              className="border border-[#eae7e1] bg-[#111111] p-4 rounded-none md:rounded-sm flex flex-col justify-between"
             >
               <div className="flex items-center gap-2 text-[11px] font-mono text-[#888] mb-3">
                 <span>ooo</span>
-                <div className="flex-1 border-b border-dashed border-[#444]"></div>
+                <div className="flex-1 border-b border-dashed border-[#eae7e1]/40"></div>
                 <span>[NO. {vid.number}]</span>
               </div>
 
-              <div className="relative aspect-[4/3] w-full bg-[#1a1a1a] border border-[#333] overflow-hidden mb-3.5 group">
+              <div className="relative aspect-[3/2] md:aspect-[4/3] w-full bg-[#1a1a1a] border border-[#eae7e1] overflow-hidden mb-3.5 group">
                 <Image
                   src="/images/elephant.png"
                   alt={vid.title}
@@ -138,15 +138,15 @@ export default function WatchSection() {
               </div>
 
               <div>
-                <div className="flex items-center justify-between text-[11px] font-sans text-[#aaa] mb-2">
-                  <span className="font-semibold text-white uppercase">
+                <div className="flex flex-col items-start gap-1 md:flex-row md:items-center md:justify-between md:gap-0 text-xs md:text-[11px] font-sans text-[#aaa] mb-2">
+                  <span className="font-normal text-white text-sm md:text-[11px] md:font-semibold md:uppercase">
                     {vid.category}
                   </span>
                   <span>
                     by {vid.author} | {vid.readTime}
                   </span>
                 </div>
-                <h4 className="font-serif text-lg font-semibold text-white leading-snug">
+                <h4 className="font-serif text-xl md:text-lg font-semibold text-white leading-snug">
                   {vid.title}
                 </h4>
               </div>

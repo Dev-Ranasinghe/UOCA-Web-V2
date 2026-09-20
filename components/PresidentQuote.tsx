@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export default function PresidentQuote() {
   return (
-    <section className="w-full my-24 sm:my-32 py-10 px-4 sm:px-6 max-w-4xl mx-auto flex flex-col items-center text-center">
+    <section className="w-full px-4 sm:px-6 max-w-4xl mx-auto flex flex-col items-center text-center">
       {/* Boxed Elephant Illustration */}
       <div className="w-full max-w-lg border border-[#121212] bg-[#f7f5f0] p-4 rounded-sm shadow-sm mb-10">
         <div className="card-header-line mb-3">
