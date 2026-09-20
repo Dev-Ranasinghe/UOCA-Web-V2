@@ -69,6 +69,9 @@
   }
   html {
     @apply font-sans;
+    /* The preloader locks scrolling while it plays; reserving the scrollbar's space keeps the page from shifting sideways
+       when the lock lifts. */
+    scrollbar-gutter: stable;
   }
 }
 
@@ -201,17 +204,42 @@
  * if scripts never run, this failsafe uncovers the page after 5s. JS cancels it as soon as it takes over.
  * Reduced-motion users never see the curtain at all.
  */
+/* The failsafes fade to opacity 0 instead of switching `visibility`: a very short animation ends a hair short of 100%
+   progress, and `visibility` only flips to hidden at exactly 100%, so it never hid anything (only pointer-events flipped). */
 @keyframes page-curtain-failsafe {
   to {
-    visibility: hidden;
+    opacity: 0;
     pointer-events: none;
   }
 }
 .page-curtain {
-  animation: page-curtain-failsafe 0.01s linear 5s forwards;
+  animation: page-curtain-failsafe 0.4s ease 5s forwards;
 }
 @media (prefers-reduced-motion: reduce) {
   .page-curtain {
+    display: none;
+  }
+}
+
+/*
+ * First-load preloader (components/Preloader.tsx). Like the page curtain it is in the server HTML, so this failsafe
+ * hides it after 9s if scripts never run; JS cancels it as soon as it takes over. Reduced-motion users never see it.
+ */
+@keyframes preloader-failsafe {
+  to {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+.preloader {
+  animation: preloader-failsafe 0.4s ease 9s forwards;
+}
+/* Scrolling is locked while the preloader plays; the component always removes the class (finish, watchdog, cleanup). */
+html.preloader-lock {
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .preloader {
     display: none;
   }
 }

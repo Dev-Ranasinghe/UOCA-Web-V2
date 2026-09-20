@@ -3,12 +3,14 @@
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import gsap from "gsap";
+import { PAGE_REVEAL_EVENT, preloaderIsUp } from "@/lib/page-intro";
 
 /**
- * Page curtain: the same black "waterfall" as the mobile menu, on every page change and first load.
+ * Page curtain: the same black "waterfall" as the mobile menu, on every page change.
  *
- * - First load: the curtain is part of the server HTML (no flash of unstyled content); once the page has
- *   hydrated and fonts are ready, the black drains off the bottom edge.
+ * - First load: the cream preloader (components/Preloader.tsx) is the intro, so the black curtain is switched off
+ *   there. Where there is no preloader (admin, reduced motion) nothing plays. The black curtain is still in the
+ *   server HTML as a cover for the first paint, and hides itself once scripts run.
  * - Navigation: an internal link click is intercepted, the black falls from the top edge to cover the page,
  *   the route changes underneath, then the black drains away to reveal the new page.
  *
@@ -70,7 +72,7 @@ export default function PageTransition() {
     clearWork();
     phaseRef.current = "revealing";
     // Tell components/PageReveal.tsx the black is about to drain, so the page content can rise in with it.
-    window.dispatchEvent(new CustomEvent("page-curtain:reveal", { detail: { delay } }));
+    window.dispatchEvent(new CustomEvent(PAGE_REVEAL_EVENT, { detail: { delay } }));
     gsap.set(curtain, { visibility: "visible", pointerEvents: "auto", clipPath: COVERED });
     tweenRef.current = gsap.to(curtain, {
       clipPath: COLLAPSED_BOTTOM,
@@ -90,10 +92,13 @@ export default function PageTransition() {
     if (!curtain) return;
     // Scripts are running, so the CSS failsafe is no longer needed. If it already fired (very slow
     // hydration), the curtain is hidden: keep it that way instead of bringing it back.
-    const alreadyHidden = window.getComputedStyle(curtain).visibility === "hidden";
+    const shown = window.getComputedStyle(curtain);
+    const alreadyHidden = shown.visibility === "hidden" || Number(shown.opacity) < 0.01;
     curtain.style.animation = "none";
 
-    if (alreadyHidden || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+    // On first load the cream preloader (components/Preloader.tsx) is the intro, not the black wipe: switch the
+    // black curtain off straight away; the preloader tells PageReveal when the page is uncovered.
+    if (alreadyHidden || preloaderIsUp() || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
       hide();
       return;
     }

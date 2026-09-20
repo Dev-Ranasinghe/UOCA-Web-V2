@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Tinos, Plus_Jakarta_Sans, JetBrains_Mono, Arimo } from "next/font/google";
-// Preloader disabled at the user's request (2026-09-19) — it was getting stuck
-// fully opaque, hiding the whole site. Re-add `<Preloader />` below when asked.
-// import Preloader from "@/components/Preloader";
+import Preloader from "@/components/Preloader";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import PageTransition from "@/components/PageTransition";
@@ -46,6 +44,7 @@ export default function RootLayout({
       className={cn("antialiased", fontSerif.variable, fontMono.variable, "font-sans", fontSans.variable)}
     >
       <body className="min-h-screen flex flex-col bg-[#eae7e1] text-[#121212]">
+        <Preloader />
         <PageTransition />
         <PageReveal />
         {children}

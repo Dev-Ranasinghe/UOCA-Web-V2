@@ -3,6 +3,7 @@
 import { useLayoutEffect } from "react";
 import { usePathname } from "next/navigation";
 import gsap from "gsap";
+import { PAGE_REVEAL_EVENT, preloaderIsUp } from "@/lib/page-intro";
 
 /**
  * Page arrival and scroll reveal for the content of <main>, on every page.
@@ -44,7 +45,9 @@ const SCROLL_STAGGER = 0.09;
 const MAX_SPLIT = 12;
 const MAX_DEPTH = 2;
 
-export const REVEAL_EVENT = "page-curtain:reveal";
+const REVEAL_EVENT = PAGE_REVEAL_EVENT;
+/** On first load the preloader covers the page for about 5s, so wait for it (its own watchdog fires by about 8s). */
+const PRELOADER_FALLBACK_MS = 10000;
 
 type Unit = { el: HTMLElement; fade: boolean };
 
@@ -174,10 +177,11 @@ export default function PageReveal() {
 
     if (!played) {
       const curtain = document.querySelector("[data-page-curtain]");
+      const introUp = preloaderIsUp();
       const curtainUp = !!curtain && window.getComputedStyle(curtain).visibility !== "hidden";
-      if (curtainUp) {
+      if (curtainUp || introUp) {
         window.addEventListener(REVEAL_EVENT, onReveal);
-        timer = window.setTimeout(() => play(0), FALLBACK_MS);
+        timer = window.setTimeout(() => play(0), introUp ? PRELOADER_FALLBACK_MS : FALLBACK_MS);
       } else {
         play(0.05);
       }

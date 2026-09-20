@@ -55,7 +55,11 @@ internal page change: black falls from the top to cover, the route changes under
   (a group of 2 to 12 children is split so its parts stagger), so new pages get it for free. Add `data-reveal="none"` to a block
   that has its own scroll-driven motion (StackSpread's wrapper), `data-reveal="whole"` to move a group as one piece; `.section-dark`
   blocks only fade. Content is hidden by script only after the page is covered, and reduced-motion users are never hidden anything.
-- Don't reintroduce `components/Preloader.tsx` (the old language-cycling intro that got stuck opaque).
+- **First load** uses `components/Preloader.tsx` (cream screen saying hello in 12 languages, then lifts off the top) instead of the black
+  curtain; the black curtain is for moving between pages. It was once disabled because it got stuck opaque, so keep its safeguards: it is
+  in the server HTML with a CSS failsafe (`.preloader` in `globals.css`, hides at 9s), a real-time watchdog, a scroll lock that is always
+  released, and it is skipped for reduced motion and `/admin`. `PageTransition` and `PageReveal` check `[data-preloader]`
+  (`lib/page-intro.ts`) so the black wipe stays off and the content reveal waits for the preloader to lift.
 
 # Background components
 
