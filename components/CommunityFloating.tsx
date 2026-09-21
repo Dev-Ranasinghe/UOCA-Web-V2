@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import SphereImageGrid, { type ImageData } from "@/components/ui/img-sphere";
+import DripEdge from "@/components/DripEdge";
 
 // Real UOCA club members, sourced from `LC UOCA Site/Club Members/{BOD,EXCO,HEAD}`.
 const CLUB_MEMBERS: { name: string; category: string; image: string }[] = [
@@ -67,8 +68,9 @@ function useSphereSize() {
 export default function CommunityFloating() {
   const containerSize = useSphereSize();
 
+  // overflow-x-clip (not hidden) so the drips can hang below the section; the bottom border is dropped because they replace it.
   return (
-    <section className="section-dark w-full bg-[#050505] text-white px-4 sm:px-6 border-t border-b border-[#222] overflow-hidden">
+    <section className="section-dark relative w-full bg-[#050505] text-white px-4 sm:px-6 border-t border-[#222] overflow-x-clip">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
         {/* Left: 3D sphere of member photos */}
         <div className="flex justify-center order-2 lg:order-1">
@@ -115,6 +117,9 @@ export default function CommunityFloating() {
           </Link>
         </motion.div>
       </div>
+
+      {/* Drips run into the gap below (heights sit just under --section-gap: 88 / 128 / 176px). */}
+      <DripEdge color="#050505" className="h-[84px] md:h-[124px] lg:h-[172px]" />
     </section>
   );
 }
