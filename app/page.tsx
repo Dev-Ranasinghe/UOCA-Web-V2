@@ -7,16 +7,16 @@ import NewsletterStamp from "@/components/NewsletterStamp";
 import Ticker from "@/components/Ticker";
 import PresidentQuote from "@/components/PresidentQuote";
 import WatchSection from "@/components/WatchSection";
-import PodcastsSection from "@/components/PodcastsSection";
+import HappeningNowSection from "@/components/HappeningNowSection";
 import Footer from "@/components/Footer";
 import SectionDivider from "@/components/SectionDivider";
 import Testimonials from "@/components/Testimonials";
 import FaqSection from "@/components/FaqSection";
 import CommunityFloating from "@/components/CommunityFloating";
 import StackSpread from "@/components/ui/stack-spread";
-import { HaloReel, type HaloReelItem } from "@/components/ui/halo-reel";
 import MarqueeAlongSvgPath from "@/components/ui/marquee-along-svg-path";
 import { prisma } from "@/lib/prisma";
+import { getHappeningNow } from "@/lib/happening-now";
 
 // Placeholder images until real community photos are ready.
 // Square crops (w=h) so each tile renders as a square, matching the
@@ -39,17 +39,6 @@ const marqueeImages = [
 
 const marqueePath =
   "M1 209.434C58.5872 255.935 387.926 325.938 482.583 209.434C600.905 63.8051 525.516 -43.2211 427.332 19.9613C329.149 83.1436 352.902 242.723 515.041 267.302C644.752 286.966 943.56 181.94 995 156.5";
-
-// Placeholder banner until real flyer artwork for each project is ready —
-// swap `src` in each entry for the actual flyer image once available.
-const currentProjects: HaloReelItem[] = [
-  { src: "/images/elephant-card.webp", alt: "Blood Drive" },
-  { src: "/images/elephant-card.webp", alt: "Beach Cleanup" },
-  { src: "/images/elephant-card.webp", alt: "Tech For Good" },
-  { src: "/images/elephant-card.webp", alt: "Fellowship Night" },
-  { src: "/images/elephant-card.webp", alt: "Outreach Camp" },
-  { src: "/images/elephant-card.webp", alt: "Global Partners" },
-];
 
 const heroAsciiConfig: AsciiEffectConfig = {
   pfx: {
@@ -122,12 +111,15 @@ const heroAsciiConfig: AsciiEffectConfig = {
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const recentProjects = await prisma.project.findMany({
-    where: { status: "PUBLISHED" },
-    include: { coverImage: true, chairperson: true },
-    orderBy: { updatedAt: "desc" },
-    take: 6,
-  });
+  const [recentProjects, happeningNow] = await Promise.all([
+    prisma.project.findMany({
+      where: { status: "PUBLISHED" },
+      include: { coverImage: true, chairperson: true },
+      orderBy: { updatedAt: "desc" },
+      take: 6,
+    }),
+    getHappeningNow(6),
+  ]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#eae7e1] text-[#121212]">
@@ -242,32 +234,8 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Current Projects Section */}
-        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-[#121212]">
-            Happening right now
-          </h2>
-
-          <SectionDivider spaced />
-
-          <HaloReel
-            items={currentProjects}
-            aria-label="Current club projects"
-            centerLabel={
-              <span className="font-serif text-[3vw] sm:text-[2.4vw] lg:text-[1.8vw] font-bold tracking-tight text-[#121212]">
-                Our projects
-              </span>
-            }
-            cardWidth={170}
-            cardHeight={235}
-            minScale={0.4}
-            radiusYRatio={0.36}
-            centerXRatio={0.035}
-            holdDuration={1000}
-            stepDuration={700}
-            className="h-[560px]"
-          />
-        </section>
+        {/* Projects happening right now (six cards, this month's projects) */}
+        <HappeningNowSection items={happeningNow} />
       </>
 
       {/* Community Spotlight Section (Dark Theme Full Width, Placeholder) */}
@@ -481,9 +449,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Podcasts Section */}
-      <PodcastsSection />
 
       {/* FAQ (dark, animated Auralis background) */}
       <FaqSection />
