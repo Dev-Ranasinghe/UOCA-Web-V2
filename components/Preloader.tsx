@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import gsap from "gsap";
 import { PAGE_REVEAL_EVENT, preloaderIsUp } from "@/lib/page-intro";
+import { isBareRoute } from "@/lib/bare-routes";
 
 /**
  * First-load intro: a cream screen that says hello in a dozen languages, then lifts off the top with a curved
@@ -45,7 +46,7 @@ const WATCHDOG_SLACK_MS = 2500;
 
 export default function Preloader() {
   const pathname = usePathname();
-  const isAdmin = pathname?.startsWith("/admin") ?? false;
+  const isAdmin = isBareRoute(pathname); // admin and maintenance skip the intro
   const preloaderRef = useRef<HTMLDivElement>(null);
   const wordElRef = useRef<HTMLParagraphElement>(null);
   const wordTextRef = useRef<HTMLSpanElement>(null);

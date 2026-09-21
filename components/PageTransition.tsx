@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import gsap from "gsap";
 import { PAGE_REVEAL_EVENT, preloaderIsUp } from "@/lib/page-intro";
+import { isBareRoute } from "@/lib/bare-routes";
 
 /**
  * Page curtain: the same black "waterfall" as the mobile menu, on every page change.
@@ -37,7 +38,7 @@ type Phase = "initial" | "idle" | "covering" | "waiting" | "revealing";
 export default function PageTransition() {
   const pathname = usePathname();
   const router = useRouter();
-  const disabled = pathname.startsWith("/admin");
+  const disabled = isBareRoute(pathname);
 
   const curtainRef = useRef<HTMLDivElement | null>(null);
   const phaseRef = useRef<Phase>("initial");

@@ -349,3 +349,12 @@ model ActivityLog {
   @@index([entityType, entityId])
   @@index([createdAt])
 }
+
+// ── Site settings ─────────────────────────────
+
+// One row (id "site") holding switches an admin can flip without a deploy.
+model SiteSettings {
+  id              String   @id @default("site")
+  maintenanceMode Boolean  @default(false) // true: public pages redirect to /maintenance
+  updatedAt       DateTime @updatedAt
+}

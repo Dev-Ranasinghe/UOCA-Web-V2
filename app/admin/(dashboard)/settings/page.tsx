@@ -1,15 +1,18 @@
 import { requireAdmin } from "@/lib/auth/dal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { canToggleMaintenance, MAINTENANCE_SWITCH_EMAIL, readMaintenanceMode } from "@/lib/site-settings";
+import { MaintenanceCard } from "./maintenance-card";
 
 export default async function AdminSettingsPage() {
   const admin = await requireAdmin();
+  const maintenance = await readMaintenanceMode().catch(() => false);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">Your account details.</p>
+        <p className="text-sm text-muted-foreground">Your account details and site controls.</p>
       </div>
 
       <Card>
@@ -33,6 +36,12 @@ export default async function AdminSettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <MaintenanceCard
+        initial={maintenance}
+        canEdit={admin.role === "SUPER_ADMIN" && canToggleMaintenance(admin.email)}
+        ownerEmail={MAINTENANCE_SWITCH_EMAIL}
+      />
     </div>
   );
 }

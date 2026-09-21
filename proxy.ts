@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getMaintenanceMode } from "@/lib/site-settings";
 
 /**
  * Optimistic auth check only — refreshes the Supabase session cookie and
@@ -7,7 +8,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * the Admin table (that's the real authorization boundary, in
  * lib/auth/dal.ts), it only checks whether *a* Supabase session exists.
  */
-export async function proxy(request: NextRequest) {
+async function adminProxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -66,6 +67,33 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
+/**
+ * Maintenance mode (switched in /admin/settings). While it is on, every public page redirects to /maintenance. Left alone:
+ * the admin dashboard, /auth, /api (the maintenance page polls it), Next's own files and anything with a file extension
+ * (images, fonts, icons). It applies to everyone, signed-in admins included, so what you see while testing is what visitors
+ * see; switch it off in /admin/settings to look at the real site.
+ */
+async function maintenanceProxy(request: NextRequest) {
+  const { pathname, searchParams } = request.nextUrl;
+  const maintenance = await getMaintenanceMode();
+
+  if (pathname === "/maintenance") {
+    // Nothing to wait for: send them home. `?preview` lets the admin panel show the page while the site is live.
+    if (!maintenance && !searchParams.has("preview")) return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.next();
+  }
+
+  if (!maintenance) return NextResponse.next();
+
+  const response = NextResponse.redirect(new URL("/maintenance", request.url));
+  response.headers.set("Cache-Control", "no-store");
+  return response;
+}
+
+export async function proxy(request: NextRequest) {
+  return request.nextUrl.pathname.startsWith("/admin") ? adminProxy(request) : maintenanceProxy(request);
+}
+
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/((?!api|auth|admin|_next|.*\\..*).*)"],
 };

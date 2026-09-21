@@ -4,6 +4,7 @@ import { useLayoutEffect } from "react";
 import { usePathname } from "next/navigation";
 import gsap from "gsap";
 import { PAGE_REVEAL_EVENT, preloaderIsUp } from "@/lib/page-intro";
+import { isBareRoute } from "@/lib/bare-routes";
 
 /**
  * Page arrival and scroll reveal for the content of <main>, on every page.
@@ -85,7 +86,7 @@ export default function PageReveal() {
 
   // A layout effect: the new page is hidden before it is ever painted, while the curtain still covers it.
   useLayoutEffect(() => {
-    if (pathname.startsWith("/admin")) return;
+    if (isBareRoute(pathname)) return;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
     const main = document.querySelector("main");
     if (!main) return;

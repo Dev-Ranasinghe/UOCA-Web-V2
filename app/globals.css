@@ -381,10 +381,10 @@ html.preloader-lock {
     transform: translateY(0) scale(1, 1);
   }
   18% {
-    transform: translateY(2px) scale(1.07, 0.9);
+    transform: translateY(calc(2px * var(--lynx-amp, 1))) scale(1.07, 0.9);
   }
   48% {
-    transform: translateY(-13px) scale(0.95, 1.06);
+    transform: translateY(calc(-13px * var(--lynx-amp, 1))) scale(0.95, 1.06);
   }
   74% {
     transform: translateY(0) scale(1.05, 0.95);
@@ -416,6 +416,121 @@ html.preloader-lock {
 
 [data-lynx-act="wiggle"] {
   animation: lynx-wiggle 0.8s ease-in-out;
+}
+
+/* More moves for the big LYNX on the maintenance page (components/MaintenanceView.tsx). The distances are multiplied by
+   --lynx-amp, which that page sets to match how much the mascot is scaled up; the launcher never sets it, so it reads 1. */
+@keyframes lynx-nod {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(calc(5px * var(--lynx-amp, 1))) rotate(5deg);
+  }
+  50% {
+    transform: translateY(0) rotate(0deg);
+  }
+  75% {
+    transform: translateY(calc(4px * var(--lynx-amp, 1))) rotate(-4deg);
+  }
+}
+
+@keyframes lynx-bounce {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  15% {
+    transform: translateY(calc(2px * var(--lynx-amp, 1))) scale(1.08, 0.9);
+  }
+  35% {
+    transform: translateY(calc(-14px * var(--lynx-amp, 1))) scale(0.95, 1.07);
+  }
+  55% {
+    transform: translateY(0) scale(1.06, 0.94);
+  }
+  72% {
+    transform: translateY(calc(-8px * var(--lynx-amp, 1))) scale(0.97, 1.04);
+  }
+  88% {
+    transform: translateY(0) scale(1.03, 0.97);
+  }
+}
+
+@keyframes lynx-spin {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1, 1);
+  }
+  15% {
+    transform: translateY(calc(2px * var(--lynx-amp, 1))) rotate(0deg) scale(1.07, 0.9);
+  }
+  45% {
+    transform: translateY(calc(-16px * var(--lynx-amp, 1))) rotate(190deg) scale(0.96, 1.06);
+  }
+  75% {
+    transform: translateY(calc(-6px * var(--lynx-amp, 1))) rotate(320deg) scale(1, 1);
+  }
+  100% {
+    transform: translateY(0) rotate(360deg) scale(1, 1);
+  }
+}
+
+@keyframes lynx-squish {
+  0% {
+    transform: scale(1, 1);
+  }
+  22% {
+    transform: translateY(calc(4px * var(--lynx-amp, 1))) scale(1.2, 0.76);
+  }
+  50% {
+    transform: translateY(calc(-7px * var(--lynx-amp, 1))) scale(0.9, 1.15);
+  }
+  78% {
+    transform: translateY(0) scale(1.05, 0.96);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+@keyframes lynx-shake {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  15% {
+    transform: translateX(calc(-6px * var(--lynx-amp, 1))) rotate(-5deg);
+  }
+  35% {
+    transform: translateX(calc(5px * var(--lynx-amp, 1))) rotate(4deg);
+  }
+  55% {
+    transform: translateX(calc(-4px * var(--lynx-amp, 1))) rotate(-3deg);
+  }
+  75% {
+    transform: translateX(calc(3px * var(--lynx-amp, 1))) rotate(2deg);
+  }
+}
+
+[data-lynx-act="nod"] {
+  animation: lynx-nod 0.9s ease-in-out;
+}
+
+[data-lynx-act="bounce"] {
+  animation: lynx-bounce 0.95s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-lynx-act="spin"] {
+  animation: lynx-spin 1s cubic-bezier(0.45, 0, 0.25, 1);
+}
+
+[data-lynx-act="squish"] {
+  animation: lynx-squish 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-lynx-act="shake"] {
+  animation: lynx-shake 0.6s ease-in-out;
 }
 
 /* These animate the individual translate/scale properties, the same ones Tailwind's -translate-y-1/2 sets, so the
