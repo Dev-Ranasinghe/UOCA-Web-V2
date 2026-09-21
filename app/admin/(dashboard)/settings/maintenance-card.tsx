@@ -16,7 +16,13 @@ export function MaintenanceCard({ initial, canEdit, ownerEmail }: { initial: boo
     const previous = enabled;
     setEnabled(next); // optimistic; put back if the server says no
     startTransition(async () => {
-      const result = await setMaintenanceMode(next);
+      let result: Awaited<ReturnType<typeof setMaintenanceMode>>;
+      try {
+        result = await setMaintenanceMode(next);
+      } catch {
+        // The request never got an answer (network, or the page is from an older deploy): refresh and try again.
+        result = { ok: false, error: "Could not reach the server. Refresh the page and try again." };
+      }
       if (!result.ok) {
         setEnabled(previous);
         toast.error(result.error);

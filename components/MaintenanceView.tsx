@@ -229,7 +229,7 @@ export default function MaintenanceView() {
   const text = said ?? LINES[line];
 
   return (
-    <main className="flex min-h-screen flex-1 flex-col px-4 pb-6 pt-6 text-center sm:px-6 sm:pb-8 sm:pt-8">
+    <main className="flex min-h-svh flex-1 flex-col px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-6 text-center sm:px-6 sm:pb-8 sm:pt-8">
       {/* Who this is: the site's own wordmark and what it is */}
       <header className="mx-auto w-full max-w-3xl">
         <div className="relative aspect-[2144/275] w-full">
@@ -242,25 +242,34 @@ export default function MaintenanceView() {
             priority
           />
         </div>
-        <div className="mt-3 flex items-center gap-2 font-mono text-[11px] text-[#121212] sm:mt-4 sm:gap-3 sm:text-xs">
-          <span aria-hidden="true" className="font-semibold tracking-[2px]">
-            ooo
-          </span>
-          <div aria-hidden="true" className="flex-1 border-b border-dashed border-[#121212]" />
-          <span className="font-semibold uppercase tracking-wider">Official website of the Leo Club of UOC Alumni</span>
-          <div aria-hidden="true" className="flex-1 border-b border-dashed border-[#121212]" />
-          <span aria-hidden="true" className="font-semibold tracking-[2px]">
-            ooo
-          </span>
+        <div className="mt-3 sm:mt-4">
+          {/* Phones: the name set as a deliberate two-line caption between two dashed rules, so it never wraps by accident. */}
+          <p className="border-y border-dashed border-[#121212] py-2.5 font-mono text-[11px] font-semibold uppercase leading-[1.7] tracking-[0.16em] text-[#121212] sm:hidden">
+            Official website of the
+            <br />
+            Leo Club of UOC Alumni
+          </p>
+          {/* From sm up there is room for one line between the "ooo" ends. */}
+          <div className="hidden items-center gap-3 font-mono text-xs text-[#121212] sm:flex">
+            <span aria-hidden="true" className="font-semibold tracking-[2px]">
+              ooo
+            </span>
+            <div aria-hidden="true" className="flex-1 border-b border-dashed border-[#121212]" />
+            <span className="font-semibold uppercase tracking-wider">Official website of the Leo Club of UOC Alumni</span>
+            <div aria-hidden="true" className="flex-1 border-b border-dashed border-[#121212]" />
+            <span aria-hidden="true" className="font-semibold tracking-[2px]">
+              ooo
+            </span>
+          </div>
         </div>
       </header>
 
-      <div className="flex flex-1 flex-col items-center justify-center py-6">
+      <div className="flex flex-1 flex-col items-center justify-center py-5 sm:py-6">
         <div className="flex flex-col items-center">
           {/* Speech bubble (decorative: the heading below says the same thing) */}
           <div
             aria-hidden="true"
-            className="relative mb-8 min-w-44 max-w-[85vw] bg-[#121212] px-5 py-3 font-mono text-sm font-semibold text-white after:absolute after:-bottom-1.5 after:left-1/2 after:size-3 after:-translate-x-1/2 after:rotate-45 after:bg-[#121212] sm:mb-10 sm:px-6 sm:py-3.5 sm:text-base"
+            className="relative mb-7 min-w-44 max-w-[85vw] bg-[#121212] px-5 py-3 font-mono text-sm font-semibold text-white after:absolute after:-bottom-1.5 after:left-1/2 after:size-3 after:-translate-x-1/2 after:rotate-45 after:bg-[#121212] sm:mb-10 sm:px-6 sm:py-3.5 sm:text-base"
           >
             <span
               key={text}
@@ -278,32 +287,36 @@ export default function MaintenanceView() {
             onClick={poke}
             onPointerEnter={greet}
             aria-label="Poke LYNX"
-            className="group grid size-40 cursor-pointer place-items-center outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#121212] sm:size-44"
+            className="group grid size-48 cursor-pointer place-items-center outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#121212] sm:size-44"
           >
-            <div ref={act} className="[--lynx-amp:2.6] sm:[--lynx-amp:3]">
-              <div className="scale-[3.6] transition-[scale] duration-300 ease-[cubic-bezier(.22,1.5,.5,1)] group-hover:scale-[3.85] group-active:scale-[3.3] motion-reduce:transition-none sm:scale-[4] sm:group-hover:scale-[4.25] sm:group-active:scale-[3.65]">
+            <div ref={act} className="[--lynx-amp:3] sm:[--lynx-amp:3]">
+              <div className="scale-[4.2] transition-[scale] duration-300 ease-[cubic-bezier(.22,1.5,.5,1)] group-hover:scale-[4.45] group-active:scale-[3.85] motion-reduce:transition-none sm:scale-[4] sm:group-hover:scale-[4.25] sm:group-active:scale-[3.65]">
                 <AIMascot />
               </div>
             </div>
           </button>
-          <div aria-hidden="true" className="mt-3 h-2 w-24 rounded-full bg-[#121212]/15 blur-md sm:mt-4 sm:w-28" />
+          <div aria-hidden="true" className="mt-2 h-2 w-28 rounded-full bg-[#121212]/15 blur-md sm:mt-4 sm:w-28" />
         </div>
 
-        <h1 className="mt-6 font-serif text-4xl font-bold tracking-tight text-balance text-[#121212] sm:text-5xl">
+        <h1 className="mt-6 font-serif text-[2.75rem] font-bold leading-[1.05] tracking-tight text-balance text-[#121212] sm:mt-6 sm:text-5xl sm:leading-[1.1]">
           We&rsquo;ll be right back.
         </h1>
-        <p className="mt-3 max-w-md font-sans text-base leading-relaxed text-[#444]">
+        <p className="mt-4 max-w-[19rem] font-sans text-base leading-relaxed text-[#444] sm:mt-3 sm:max-w-md">
           The UOCA website is getting some care and attention. Wait right here with LYNX; this page opens the site again the moment
           we&rsquo;re back.
         </p>
 
-        <p role="status" className="mt-6 flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-[#555]">
+        <p
+          role="status"
+          className="mt-6 inline-flex items-center gap-2 border border-dashed border-[#121212]/40 px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-[#444] sm:mt-6"
+        >
           <span aria-hidden="true" className="size-1.5 rounded-full bg-[#ef671c] motion-safe:animate-pulse" />
-          Checking every {POLL_MS / 1000} seconds. No need to refresh.
+          Checking every {POLL_MS / 1000} seconds
+          <span className="hidden sm:inline">&middot; no need to refresh</span>
         </p>
       </div>
 
-      <footer className="font-mono text-[11px] uppercase tracking-wider text-[#555]">
+      <footer className="mx-auto w-full max-w-3xl border-t border-dashed border-[#121212]/30 pt-4 font-mono text-[11px] uppercase tracking-[0.16em] text-[#555]">
         Powered by <span className="font-bold text-[#121212]">Dandy Studios</span>
       </footer>
     </main>
