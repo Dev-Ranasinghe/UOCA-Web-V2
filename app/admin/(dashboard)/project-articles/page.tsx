@@ -3,10 +3,10 @@ import { FileText, Plus, Pencil } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/dal";
 import { prisma } from "@/lib/prisma";
 import { EmptyState } from "@/components/admin/empty-state";
+import { StatusBadge } from "@/components/admin/status-badge";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -18,11 +18,6 @@ import {
 import type { ContentStatus } from "@prisma/client";
 import { deleteArticle } from "../articles/actions";
 
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  PUBLISHED: "default",
-  DRAFT: "secondary",
-  ARCHIVED: "outline",
-};
 
 const LIST_PATH = "/admin/project-articles";
 
@@ -94,9 +89,7 @@ export default async function AdminProjectArticlesPage({
                     {article.project?.name ?? "—"}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANT[article.status] ?? "outline"}>
-                      {article.status}
-                    </Badge>
+                    <StatusBadge status={article.status} />
                   </TableCell>
                   <TableCell className="flex justify-end gap-1">
                     <Button

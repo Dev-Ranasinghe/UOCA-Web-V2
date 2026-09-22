@@ -44,7 +44,7 @@ export function MaintenanceCard({ initial, canEdit, ownerEmail }: { initial: boo
               closed to everyone, admins included, until you switch this off. Changes reach visitors within a few seconds.
             </CardDescription>
           </div>
-          <Badge variant={enabled ? "destructive" : "secondary"} className="shrink-0">
+          <Badge variant="outline" data-tone={enabled ? "pink" : "green"} data-notch="start" className="shrink-0">
             {enabled ? "Maintenance on" : "Site live"}
           </Badge>
         </div>

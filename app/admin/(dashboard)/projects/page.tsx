@@ -3,10 +3,10 @@ import { FolderKanban, Plus, Pencil } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/dal";
 import { prisma } from "@/lib/prisma";
 import { EmptyState } from "@/components/admin/empty-state";
+import { StatusBadge } from "@/components/admin/status-badge";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -18,11 +18,6 @@ import {
 import type { ContentStatus } from "@prisma/client";
 import { deleteProject } from "./actions";
 
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  PUBLISHED: "default",
-  DRAFT: "secondary",
-  ARCHIVED: "outline",
-};
 
 export default async function AdminProjectsPage({
   searchParams,
@@ -94,9 +89,7 @@ export default async function AdminProjectsPage({
                       : "—"}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANT[project.status] ?? "outline"}>
-                      {project.status}
-                    </Badge>
+                    <StatusBadge status={project.status} />
                   </TableCell>
                   <TableCell className="text-muted-foreground">{project._count.articles}</TableCell>
                   <TableCell className="flex justify-end gap-1">

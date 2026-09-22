@@ -1,7 +1,9 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { MotionConfig, motion } from "motion/react";
 import {
   LayoutDashboard,
   FolderKanban,
@@ -25,9 +27,22 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { UserMenu } from "./user-menu";
 import type { Admin } from "@prisma/client";
+
+// The yellow "you are here" pill. One element shared by every item (layoutId), so it slides to the new item on navigation.
+function ActivePill() {
+  return (
+    <motion.span
+      layoutId="admin-nav-active"
+      aria-hidden="true"
+      className="absolute -inset-0.5 -z-10 rounded-[10px] border-2 border-(color:--nb-ink) bg-(--nb-yellow) shadow-[2px_2px_0_var(--nb-ink)]"
+      transition={{ type: "spring", stiffness: 520, damping: 40, mass: 0.8 }}
+    />
+  );
+}
 
 const NAV_ITEMS = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
@@ -42,87 +57,99 @@ const NAV_ITEMS = [
 
 export function AppSidebar({ admin }: { admin: Admin }) {
   const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
+
+  // On phones the sidebar is a drawer: close it once a link has taken you somewhere.
+  React.useEffect(() => {
+    setOpenMobile(false);
+  }, [pathname, setOpenMobile]);
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1.5">
-          <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground text-xs font-bold">
-            U
+    <MotionConfig reducedMotion="user">
+      <Sidebar collapsible="icon" variant="floating">
+        <SidebarHeader>
+          <div className="flex items-center gap-2.5 px-1 py-1">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border-2 border-(color:--nb-ink) bg-(--nb-yellow) text-sm font-extrabold shadow-[2px_2px_0_var(--nb-ink)]">
+              U
+            </div>
+            <div className="grid leading-tight group-data-[collapsible=icon]:hidden">
+              <span className="text-sm font-bold">UOCA Admin</span>
+              <span className="text-xs text-(color:--nb-muted)">Content studio</span>
+            </div>
           </div>
-          <span className="font-semibold group-data-[collapsible=icon]:hidden">
-            UOCA Admin
-          </span>
-        </div>
-      </SidebarHeader>
+        </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Content</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {NAV_ITEMS.map((item) => {
-                const isActive =
-                  item.url === "/admin"
-                    ? pathname === "/admin"
-                    : pathname.startsWith(item.url);
-                return (
-                  <SidebarMenuItem key={item.url}>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Content</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {NAV_ITEMS.map((item) => {
+                  const isActive =
+                    item.url === "/admin"
+                      ? pathname === "/admin"
+                      : pathname.startsWith(item.url);
+                  return (
+                    <SidebarMenuItem key={item.url}>
+                      <SidebarMenuButton
+                        isActive={isActive}
+                        tooltip={item.title}
+                        render={
+                          <Link href={item.url}>
+                            {isActive ? <ActivePill /> : null}
+                            <item.icon />
+                            <span>{item.title}</span>
+                          </Link>
+                        }
+                      />
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>Administration</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {admin.role === "SUPER_ADMIN" ? (
+                  <SidebarMenuItem>
                     <SidebarMenuButton
-                      isActive={isActive}
-                      tooltip={item.title}
+                      isActive={pathname.startsWith("/admin/admins")}
+                      tooltip="Admin Users"
                       render={
-                        <Link href={item.url}>
-                          <item.icon />
-                          <span>{item.title}</span>
+                        <Link href="/admin/admins">
+                          {pathname.startsWith("/admin/admins") ? <ActivePill /> : null}
+                          <ShieldCheck />
+                          <span>Admin Users</span>
                         </Link>
                       }
                     />
                   </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Administration</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {admin.role === "SUPER_ADMIN" ? (
+                ) : null}
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    isActive={pathname.startsWith("/admin/admins")}
-                    tooltip="Admin Users"
+                    isActive={pathname.startsWith("/admin/settings")}
+                    tooltip="Settings"
                     render={
-                      <Link href="/admin/admins">
-                        <ShieldCheck />
-                        <span>Admin Users</span>
+                      <Link href="/admin/settings">
+                        {pathname.startsWith("/admin/settings") ? <ActivePill /> : null}
+                        <Settings />
+                        <span>Settings</span>
                       </Link>
                     }
                   />
                 </SidebarMenuItem>
-              ) : null}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={pathname.startsWith("/admin/settings")}
-                  tooltip="Settings"
-                  render={
-                    <Link href="/admin/settings">
-                      <Settings />
-                      <span>Settings</span>
-                    </Link>
-                  }
-                />
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
 
-      <SidebarFooter>
-        <UserMenu admin={admin} />
-      </SidebarFooter>
-    </Sidebar>
+        <SidebarFooter>
+          <UserMenu admin={admin} />
+        </SidebarFooter>
+      </Sidebar>
+    </MotionConfig>
   );
 }

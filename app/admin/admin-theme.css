@@ -1,0 +1,701 @@
+/*
+ * Admin theme: a playful neo-brutalist skin for /admin (mustard top bar, lavender page, white cards with ink
+ * outlines and hard offset shadows, ribbon tags).
+ *
+ * Everything is scoped to `body:has([data-admin-root])`, so the public site never sees it, while dialogs, menus and
+ * toasts that portal straight into <body> still pick it up. The rules are deliberately unlayered: Tailwind v4 puts
+ * its utilities in @layer, and unlayered CSS wins over any layer, which lets this one file re-skin every shadcn
+ * primitive (matched by its data-slot) without forking the components.
+ */
+
+body:has([data-admin-root]) {
+  --nb-ink: #161616;
+  --nb-yellow: #f2c64a;
+  --nb-yellow-soft: #fbe7a6;
+  --nb-lavender: #f0eafb;
+  --nb-lavender-deep: #e3d8f6;
+  --nb-purple: #b99ce9;
+  --nb-blue: #8fa6d9;
+  --nb-green: #72c89b;
+  --nb-pink: #f19a9b;
+  --nb-blush: #fbeeee;
+  --nb-muted: #5d5768;
+  --nb-danger: #c7372b;
+  --nb-shadow: 4px 4px 0 var(--nb-ink);
+  --nb-shadow-sm: 2px 2px 0 var(--nb-ink);
+  --nb-shadow-lg: 6px 6px 0 var(--nb-ink);
+  --nb-radius: 18px;
+  --nb-radius-control: 10px;
+  --nb-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --nb-header-h: 4rem;
+
+  /* Site-level tokens (globals.css @theme maps background/card/muted to these). */
+  --bg-main: var(--nb-lavender);
+  --bg-card: #ffffff;
+  --text-primary: var(--nb-ink);
+  --text-muted: var(--nb-muted);
+  --border-dark: var(--nb-ink);
+  --border-subtle: var(--nb-lavender-deep);
+
+  /* shadcn tokens. */
+  --background: var(--nb-lavender);
+  --foreground: var(--nb-ink);
+  --card: #ffffff;
+  --card-foreground: var(--nb-ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--nb-ink);
+  --primary: var(--nb-yellow);
+  --primary-foreground: var(--nb-ink);
+  --secondary: var(--nb-lavender-deep);
+  --secondary-foreground: var(--nb-ink);
+  --muted: var(--nb-lavender);
+  --muted-foreground: var(--nb-muted);
+  --accent: var(--nb-lavender);
+  --accent-foreground: var(--nb-ink);
+  --destructive: var(--nb-danger);
+  --border: var(--nb-ink);
+  --input: var(--nb-lavender-deep);
+  --ring: var(--nb-ink);
+  --radius: 0.75rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: var(--nb-ink);
+  --sidebar-primary: var(--nb-yellow);
+  --sidebar-primary-foreground: var(--nb-ink);
+  --sidebar-accent: var(--nb-lavender);
+  --sidebar-accent-foreground: var(--nb-ink);
+  --sidebar-border: var(--nb-ink);
+  --sidebar-ring: var(--nb-ink);
+
+  background: var(--nb-lavender);
+  color: var(--nb-ink);
+
+  @media (min-width: 768px) {
+    --nb-header-h: 4.5rem;
+  }
+
+  & ::selection {
+    background: var(--nb-yellow);
+    color: var(--nb-ink);
+  }
+
+  /* ---------- Page type ---------- */
+
+  & [data-admin-main] h1 {
+    font-size: clamp(1.75rem, 1.35rem + 1.4vw, 2.4rem);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.08;
+    text-wrap: balance;
+  }
+  & [data-admin-main] h1 + p {
+    margin-top: 0.4rem;
+    font-size: 0.95rem;
+    color: var(--nb-muted);
+    max-width: 62ch;
+  }
+  & [data-admin-main] :is(td, .tabular) {
+    font-variant-numeric: tabular-nums;
+  }
+  & [data-admin-main] a:not([data-slot]):not([data-nb-plain]) {
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1.5px;
+  }
+
+  /* ---------- Cards and bordered blocks ---------- */
+
+  & [data-slot="card"] {
+    border: 2px solid var(--nb-ink);
+    border-radius: var(--nb-radius);
+    box-shadow: var(--nb-shadow);
+    --card-spacing: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    & [data-slot="card"] {
+      --card-spacing: 1.5rem;
+    }
+  }
+  & [data-slot="card"] [data-slot="card"] {
+    box-shadow: var(--nb-shadow-sm);
+  }
+  & [data-slot="card-title"] {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  & [data-slot="card-footer"] {
+    border-top: 2px solid var(--nb-ink);
+    background: var(--nb-lavender);
+  }
+
+  /* Plain `rounded-* border` wrappers inside pages (table frames, the editor, list rows). */
+  & [data-admin-main] :is(.rounded-md, .rounded-lg).border {
+    border-width: 2px;
+    border-color: var(--nb-ink);
+    border-radius: 12px;
+    background-color: #ffffff;
+  }
+  & [data-admin-main] .border-2 {
+    border-color: var(--nb-ink);
+  }
+
+  /* ---------- Tables ---------- */
+
+  & [data-admin-main] .border:has(> [data-slot="table-container"]) {
+    border-radius: var(--nb-radius);
+    box-shadow: var(--nb-shadow);
+    overflow: hidden;
+  }
+  & [data-slot="table-header"] [data-slot="table-row"] {
+    background: var(--nb-lavender);
+    border-bottom: 2px solid var(--nb-ink);
+  }
+  & [data-slot="table-header"] [data-slot="table-row"]:hover {
+    background: var(--nb-lavender);
+  }
+  & [data-slot="table-head"] {
+    height: 2.75rem;
+    padding-inline: 1rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--nb-ink);
+  }
+  & [data-slot="table-body"] [data-slot="table-row"] {
+    border-color: rgb(22 22 22 / 0.12);
+    transition: background-color 0.15s ease;
+  }
+  & [data-slot="table-body"] [data-slot="table-row"]:hover {
+    background: #faf7ff;
+  }
+  & [data-slot="table-cell"] {
+    padding: 0.8rem 1rem;
+  }
+  & [data-slot="table-cell"].font-medium {
+    font-weight: 600;
+  }
+
+  /* Phones: each row becomes a small card (title on its own line, the other cells as a wrapped meta line, the
+     row's actions pushed to the end) so status and edit/delete are reachable without sideways scrolling. */
+  @media (max-width: 767px) {
+    & [data-admin-main] [data-slot="table-header"] {
+      display: none;
+    }
+    & [data-admin-main] :is([data-slot="table"], [data-slot="table-body"]) {
+      display: block;
+      width: 100%;
+    }
+    & [data-admin-main] [data-slot="table-body"] [data-slot="table-row"] {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem 0.75rem;
+      padding: 0.9rem 1rem;
+    }
+    & [data-admin-main] [data-slot="table-cell"] {
+      display: block;
+      padding: 0;
+      font-size: 0.85rem;
+      white-space: normal;
+    }
+    & [data-admin-main] [data-slot="table-cell"]:first-child {
+      flex-basis: 100%;
+      font-size: 0.975rem;
+      font-weight: 600;
+    }
+    & [data-admin-main] [data-slot="table-cell"]:last-child:has([data-slot="button"], button) {
+      display: flex;
+      margin-left: auto;
+      gap: 0.25rem;
+    }
+    & [data-admin-main] [data-slot="table-cell"]:empty {
+      display: none;
+    }
+  }
+
+  /* ---------- Buttons ---------- */
+
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant]) {
+    border-width: 2px;
+    border-radius: var(--nb-radius-control);
+    font-weight: 700;
+    transition:
+      translate 0.16s var(--nb-ease),
+      box-shadow 0.16s var(--nb-ease),
+      background-color 0.16s ease,
+      color 0.16s ease;
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant]):is(
+      [data-variant="default"],
+      [data-variant="outline"],
+      [data-variant="secondary"],
+      [data-variant="destructive"]
+    ) {
+    border-color: var(--nb-ink);
+    color: var(--nb-ink);
+    box-shadow: 3px 3px 0 var(--nb-ink);
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant])[data-variant="default"] {
+    background: var(--nb-yellow);
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant]):is([data-variant="outline"]) {
+    background: #ffffff;
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant])[data-variant="secondary"] {
+    background: var(--nb-lavender-deep);
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant])[data-variant="destructive"] {
+    background: var(--nb-pink);
+  }
+  @media (hover: hover) {
+    & :is([data-slot="button"], [data-slot$="-trigger"][data-variant]):is(
+        [data-variant="default"],
+        [data-variant="outline"],
+        [data-variant="secondary"],
+        [data-variant="destructive"]
+      ):not(:disabled):hover {
+      translate: -1px -1px;
+      box-shadow: 4px 4px 0 var(--nb-ink);
+    }
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant]):is(
+      [data-variant="default"],
+      [data-variant="outline"],
+      [data-variant="secondary"],
+      [data-variant="destructive"]
+    ):not(:disabled):active {
+    translate: 2px 2px;
+    box-shadow: 1px 1px 0 var(--nb-ink);
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant])[data-variant="ghost"] {
+    border-color: transparent;
+    color: var(--nb-ink);
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant])[data-variant="ghost"]:not(:disabled):hover,
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant])[data-variant="ghost"][aria-expanded="true"] {
+    background: var(--nb-lavender);
+    border-color: var(--nb-ink);
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant])[data-variant="ghost"] .text-destructive,
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant])[data-variant="ghost"].text-destructive {
+    color: var(--nb-danger);
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant])[data-variant="link"] {
+    border: 0;
+    color: var(--nb-ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 2px;
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant])[data-size="default"] {
+    height: 2.5rem;
+    padding-inline: 1rem;
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant])[data-size="lg"] {
+    height: 2.75rem;
+    padding-inline: 1.25rem;
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant])[data-size="sm"] {
+    height: 2.125rem;
+    padding-inline: 0.75rem;
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant])[data-size="icon"] {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant])[data-size="icon-sm"] {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nb-radius-control);
+  }
+  & :is([data-slot="button"], [data-slot$="-trigger"][data-variant]):disabled {
+    box-shadow: none;
+  }
+
+  /* ---------- Focus (one visible ring for every control) ---------- */
+
+  & :is(:is([data-slot="button"], [data-slot$="-trigger"][data-variant]), [data-slot="badge"], [data-slot="sidebar-menu-button"], a, [role="tab"]):focus-visible {
+    outline: 2px solid var(--nb-ink);
+    outline-offset: 3px;
+  }
+
+  /* ---------- Form controls ---------- */
+
+  & :is(
+      [data-slot="input"],
+      [data-slot="textarea"],
+      [data-slot="select-trigger"],
+      [data-slot="sidebar-input"],
+      [data-slot="input-group"]
+    ) {
+    border: 2px solid var(--nb-ink);
+    border-radius: var(--nb-radius-control);
+    background-color: #ffffff;
+    box-shadow: none;
+    color: var(--nb-ink);
+    transition:
+      box-shadow 0.16s var(--nb-ease),
+      translate 0.16s var(--nb-ease);
+  }
+  & :is([data-slot="input"], [data-slot="select-trigger"]) {
+    height: 2.5rem;
+    padding-inline: 0.8rem;
+    font-size: 0.925rem;
+  }
+  & [data-slot="textarea"] {
+    padding: 0.65rem 0.8rem;
+    font-size: 0.925rem;
+  }
+  & :is([data-slot="input"], [data-slot="textarea"])::placeholder {
+    color: #6e6879;
+  }
+  & :is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"], [data-slot="sidebar-input"]):focus-visible,
+  & [data-slot="select-trigger"][aria-expanded="true"],
+  & [data-slot="input-group"]:focus-within {
+    outline: none;
+    box-shadow: 3px 3px 0 var(--nb-ink);
+    border-color: var(--nb-ink);
+  }
+  & :is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"])[aria-invalid="true"] {
+    border-color: var(--nb-danger);
+    box-shadow: 3px 3px 0 var(--nb-danger);
+  }
+  & [data-slot="input-group"] :is([data-slot="input"], [data-slot="textarea"], [data-slot="input-group-control"]) {
+    border: 0;
+    box-shadow: none;
+  }
+  & input[type="file"][data-slot="input"] {
+    padding-block: 0.35rem;
+  }
+  & [data-slot="label"] {
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  & [data-slot="checkbox"] {
+    width: 1.15rem;
+    height: 1.15rem;
+    border: 2px solid var(--nb-ink);
+    border-radius: 5px;
+    background: #ffffff;
+  }
+  & [data-slot="checkbox"][data-checked] {
+    background: var(--nb-yellow);
+    color: var(--nb-ink);
+    box-shadow: var(--nb-shadow-sm);
+  }
+
+  & [data-slot="switch"][data-size="default"] {
+    width: 2.75rem;
+    height: 1.6rem;
+    border: 2px solid var(--nb-ink);
+    background: #ffffff;
+    padding-inline: 2px;
+  }
+  & [data-slot="switch"][data-checked] {
+    background: var(--nb-green);
+  }
+  & [data-slot="switch"][data-size="default"] [data-slot="switch-thumb"] {
+    width: 1.1rem;
+    height: 1.1rem;
+    background: #ffffff;
+    box-shadow: 0 0 0 2px var(--nb-ink);
+    transition: translate 0.22s var(--nb-ease);
+  }
+  & [data-slot="switch"][data-size="default"] [data-slot="switch-thumb"][data-checked] {
+    translate: 1.15rem 0;
+  }
+  & [data-slot="switch"]:focus-visible {
+    outline: 2px solid var(--nb-ink);
+    outline-offset: 3px;
+  }
+
+  /* ---------- Ribbon tags (Badge) ----------
+   * The outline and the fill are two clipped pseudo-elements, so a tag can have a notched ribbon end and still
+   * carry an ink outline plus a small offset shadow (a border would be cut away by clip-path). */
+
+  & [data-slot="badge"] {
+    --tag-fill: #ffffff;
+    --tag-clip: none;
+    --tag-pad-l: 0.6rem;
+    --tag-pad-r: 0.6rem;
+    position: relative;
+    isolation: isolate;
+    height: auto;
+    min-height: 1.6rem;
+    padding: 0.2rem var(--tag-pad-r) 0.25rem var(--tag-pad-l);
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+    background: none;
+    color: var(--nb-ink);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0;
+    text-decoration: none;
+    transition: translate 0.16s var(--nb-ease);
+  }
+  & [data-slot="badge"]::before,
+  & [data-slot="badge"]::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    border-radius: 5px;
+    clip-path: var(--tag-clip);
+  }
+  & [data-slot="badge"]::before {
+    inset: 0 -2px -2px 0;
+    background: var(--nb-ink);
+  }
+  & [data-slot="badge"]::after {
+    inset: 1.5px;
+    background: var(--tag-fill);
+  }
+  & [data-slot="badge"]:is([data-notch="start"], [data-variant="default"], [data-variant="destructive"]) {
+    --tag-clip: polygon(0 0, 100% 0, 100% 100%, 0 100%, 7px 50%);
+    --tag-pad-l: 0.95rem;
+  }
+  & [data-slot="badge"]:is([data-notch="end"], [data-variant="secondary"]) {
+    --tag-clip: polygon(0 0, 100% 0, calc(100% - 7px) 50%, 100% 100%, 0 100%);
+    --tag-pad-r: 0.95rem;
+  }
+  & [data-slot="badge"][data-notch="none"] {
+    --tag-clip: none;
+    --tag-pad-l: 0.6rem;
+    --tag-pad-r: 0.6rem;
+  }
+  & [data-slot="badge"][data-variant="default"] {
+    --tag-fill: var(--nb-green);
+  }
+  & [data-slot="badge"][data-variant="secondary"] {
+    --tag-fill: var(--nb-purple);
+  }
+  & [data-slot="badge"][data-variant="destructive"] {
+    --tag-fill: var(--nb-pink);
+  }
+  & [data-slot="badge"][data-tone="yellow"] {
+    --tag-fill: var(--nb-yellow);
+  }
+  & [data-slot="badge"][data-tone="purple"] {
+    --tag-fill: var(--nb-purple);
+  }
+  & [data-slot="badge"][data-tone="blue"] {
+    --tag-fill: var(--nb-blue);
+  }
+  & [data-slot="badge"][data-tone="green"] {
+    --tag-fill: var(--nb-green);
+  }
+  & [data-slot="badge"][data-tone="pink"] {
+    --tag-fill: var(--nb-pink);
+  }
+  & [data-slot="badge"][data-tone="white"] {
+    --tag-fill: #ffffff;
+  }
+  & [data-slot="badge"][data-size="lg"] {
+    min-height: 2.1rem;
+    padding-top: 0.35rem;
+    padding-bottom: 0.4rem;
+    font-size: 0.95rem;
+  }
+  & [data-slot="badge"][data-size="lg"][data-notch="start"] {
+    --tag-pad-l: 1.15rem;
+    --tag-clip: polygon(0 0, 100% 0, 100% 100%, 0 100%, 9px 50%);
+  }
+  & [data-slot="badge"][data-size="lg"][data-notch="end"] {
+    --tag-pad-r: 1.15rem;
+    --tag-clip: polygon(0 0, 100% 0, calc(100% - 9px) 50%, 100% 100%, 0 100%);
+  }
+  & [data-slot="badge"][data-size="lg"][data-notch="none"] {
+    --tag-pad-l: 0.8rem;
+    --tag-pad-r: 0.8rem;
+  }
+  & a[data-slot="badge"]:hover {
+    translate: -1px -1px;
+  }
+  & a[data-slot="badge"]:active {
+    translate: 1px 1px;
+  }
+
+  /* ---------- Floating surfaces ---------- */
+
+  & :is(
+      [data-slot="dialog-content"],
+      [data-slot="alert-dialog-content"]
+    ) {
+    border: 2px solid var(--nb-ink);
+    border-radius: 20px;
+    box-shadow: var(--nb-shadow-lg);
+    background: #ffffff;
+  }
+  & :is(
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="dropdown-menu-sub-content"],
+      [data-slot="select-content"]
+    ) {
+    border: 2px solid var(--nb-ink);
+    border-radius: 14px;
+    box-shadow: var(--nb-shadow);
+    background: #ffffff;
+  }
+  & :is([data-slot="dialog-title"], [data-slot="alert-dialog-title"]) {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+  & :is([data-slot="dialog-footer"], [data-slot="alert-dialog-footer"]) {
+    border-top: 2px solid var(--nb-ink);
+    background: var(--nb-lavender);
+  }
+  & :is([data-slot="dialog-overlay"], [data-slot="alert-dialog-overlay"], [data-slot="sheet-overlay"]) {
+    background: rgb(22 22 22 / 0.35);
+    backdrop-filter: none;
+  }
+  & :is([data-slot="dropdown-menu-item"], [data-slot="select-item"], [data-slot="dropdown-menu-sub-trigger"], [data-slot="command-item"]) {
+    border-radius: 8px;
+    font-weight: 600;
+  }
+  & :is([data-slot="dropdown-menu-item"], [data-slot="select-item"], [data-slot="dropdown-menu-sub-trigger"], [data-slot="command-item"]):is([data-highlighted], [data-selected="true"]) {
+    background: var(--nb-lavender);
+    color: var(--nb-ink);
+  }
+  & [data-slot="dropdown-menu-item"][data-variant="destructive"] {
+    color: var(--nb-danger);
+  }
+  & [data-slot="dropdown-menu-item"][data-variant="destructive"][data-highlighted] {
+    background: var(--nb-blush);
+  }
+  & [data-slot="tooltip-content"] {
+    border-radius: 8px;
+    background: var(--nb-ink);
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  & [data-slot="tabs-list"] {
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border: 2px solid var(--nb-ink);
+    border-radius: 12px;
+    background: #ffffff;
+    height: auto;
+  }
+  & [data-slot="tabs-trigger"] {
+    border-radius: 8px;
+    font-weight: 700;
+    border: 2px solid transparent;
+  }
+  & [data-slot="tabs-trigger"]:is([data-active], [aria-selected="true"]) {
+    background: var(--nb-yellow);
+    border-color: var(--nb-ink);
+    box-shadow: none;
+  }
+
+  & [data-slot="separator"] {
+    background: rgb(22 22 22 / 0.15);
+  }
+
+  /* ---------- Sidebar ---------- */
+
+  @media (min-width: 768px) {
+    & [data-slot="sidebar-container"] {
+      top: var(--nb-header-h);
+      height: calc(100svh - var(--nb-header-h));
+      padding: 1rem 0.5rem 1rem 1rem;
+    }
+  }
+  & [data-slot="sidebar-inner"] {
+    border: 2px solid var(--nb-ink);
+    border-radius: var(--nb-radius);
+    box-shadow: var(--nb-shadow);
+    background: #ffffff;
+  }
+  & [data-slot="sidebar"][data-mobile="true"] {
+    background: var(--nb-lavender);
+    border-right: 2px solid var(--nb-ink);
+  }
+  & [data-slot="sidebar-group-label"] {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--nb-muted);
+  }
+  & [data-slot="sidebar-menu-button"] {
+    position: relative;
+    isolation: isolate;
+    height: 2.5rem;
+    border: 2px solid transparent;
+    border-radius: var(--nb-radius-control);
+    font-weight: 600;
+    color: var(--nb-ink);
+    overflow: visible;
+  }
+  & [data-slot="sidebar-menu-button"]:hover {
+    background: var(--nb-lavender);
+  }
+  & [data-slot="sidebar-menu-button"][data-active] {
+    background: transparent;
+    font-weight: 700;
+    color: var(--nb-ink);
+  }
+  & [data-slot="sidebar-menu-button"][data-size="lg"] {
+    height: 3.25rem;
+  }
+  & [data-slot="sidebar-footer"] [data-slot="sidebar-menu-button"] {
+    border-color: var(--nb-ink);
+    background: var(--nb-lavender);
+  }
+  & [data-slot="avatar"] {
+    border: 2px solid var(--nb-ink);
+  }
+
+  /* ---------- Toasts ---------- */
+
+  & [data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+    border: 2px solid var(--nb-ink);
+    border-radius: 14px;
+    box-shadow: var(--nb-shadow);
+    font-family: inherit;
+    font-weight: 600;
+    color: var(--nb-ink);
+  }
+  & [data-sonner-toaster] [data-sonner-toast][data-type="success"] {
+    background: #e4f5eb;
+  }
+  & [data-sonner-toaster] [data-sonner-toast][data-type="error"] {
+    background: var(--nb-blush);
+  }
+}
+
+html:has([data-admin-root]) {
+  scrollbar-color: var(--nb-ink, #161616) transparent;
+  background: #f0eafb;
+}
+
+/* Dashboard entrance (components/admin/reveal.tsx). `backwards` fill keeps the start pose only during each delay. */
+@keyframes nb-rise {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+    rotate: -0.6deg;
+  }
+  70% {
+    opacity: 1;
+    translate: 0 -2px;
+    rotate: 0.1deg;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+  }
+}
+.nb-rise {
+  animation: nb-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nb-rise {
+    animation: none;
+  }
+  body:has([data-admin-root]) :is(:is([data-slot="button"], [data-slot$="-trigger"][data-variant]), [data-slot="badge"], [data-slot="switch-thumb"]) {
+    transition: none;
+  }
+}
