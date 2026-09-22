@@ -2,12 +2,7 @@
 
 import * as React from "react";
 import { useActionState } from "react";
-import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { createClient } from "@/lib/supabase/client";
+import { DotGridCanvas } from "@/components/ui/dot-grid-canvas";
 import {
   signInWithPassword,
   signUpWithPassword,
@@ -16,128 +11,120 @@ import {
 
 const initialState: AuthActionState = {};
 
-function GoogleButton({ next }: { next?: string }) {
-  const [loading, setLoading] = React.useState(false);
+const inputClass =
+  "w-full rounded-[6px] border border-[#333] bg-black px-[0.85rem] py-[0.65rem] text-sm text-white outline-none transition-colors focus:border-white/50";
 
-  const handleClick = async () => {
-    setLoading(true);
-    const supabase = createClient();
-    const redirectTo = new URL("/auth/callback", window.location.origin);
-    if (next) redirectTo.searchParams.set("next", next);
+const submitButtonClass =
+  "w-full rounded-[6px] border-none bg-[#ededed] py-[0.65rem] text-sm font-medium text-black transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-60";
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: redirectTo.toString() },
-    });
-
-    if (error) setLoading(false);
-  };
-
+function Logo() {
   return (
-    <Button
-      type="button"
-      variant="outline"
-      className="w-full"
-      onClick={handleClick}
-      disabled={loading}
-    >
-      {loading ? (
-        <Loader2 className="size-4 animate-spin" />
-      ) : (
-        <svg viewBox="0 0 24 24" className="size-4">
-          <path
-            fill="#4285F4"
-            d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47c-.28 1.5-1.13 2.77-2.4 3.62v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81Z"
-          />
-          <path
-            fill="#34A853"
-            d="M12 24c3.24 0 5.96-1.07 7.95-2.92l-3.88-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.27v3.1A12 12 0 0 0 12 24Z"
-          />
-          <path
-            fill="#FBBC05"
-            d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54v-3.1H1.27a12 12 0 0 0 0 10.74l4-3.1Z"
-          />
-          <path
-            fill="#EA4335"
-            d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.27 6.63l4 3.1C6.22 6.87 8.87 4.75 12 4.75Z"
-          />
-        </svg>
-      )}
-      Continue with Google
-    </Button>
+    <div className="mb-3 flex size-11 items-center justify-center rounded-full border border-[#333] bg-[#111] font-serif text-[1.15rem] font-bold">
+      U
+    </div>
   );
 }
 
-function PasswordForm({ next }: { next?: string }) {
-  const [mode, setMode] = React.useState<"signin" | "signup">("signin");
-  const action = mode === "signin" ? signInWithPassword : signUpWithPassword;
+function Footer() {
+  return (
+    <div className="mt-[0.85rem] text-center text-xs leading-[1.5] text-[#666]">
+      By proceeding, you agree to creating a UOCA admin account
+      <br />
+      subject to our{" "}
+      <a href="#" className="text-[#888] transition-colors hover:text-white">
+        Terms of Service
+      </a>{" "}
+      and{" "}
+      <a href="#" className="text-[#888] transition-colors hover:text-white">
+        Privacy Policy
+      </a>
+      .
+    </div>
+  );
+}
+
+export function LoginForm({ next, unauthorized }: { next?: string; unauthorized?: boolean }) {
+  const [isLogin, setIsLogin] = React.useState(true);
+  const action = isLogin ? signInWithPassword : signUpWithPassword;
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
-    <form action={formAction} className="space-y-4">
-      <input type="hidden" name="next" value={next ?? ""} />
+    <div className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-black font-sans text-white">
+      <DotGridCanvas className="absolute inset-0 z-0 h-full w-full" />
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.75)_0%,rgba(0,0,0,0)_100%)]" />
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" autoComplete="email" required />
+      <div className="relative z-10 flex w-full max-w-[400px] flex-col items-center rounded-xl border border-[#222] bg-[#121212] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.8)] sm:p-8">
+        <div className="flex w-full max-w-[360px] flex-col items-center text-center">
+          <Logo />
+          <h1 className="mb-1 text-[1.35rem] font-semibold tracking-[-0.025em]">
+            {isLogin ? "Sign in to Account" : "Sign up for Account"}
+          </h1>
+          <p className="mb-[0.85rem] text-[0.85rem] leading-[1.5] text-[#888]">
+            {isLogin ? "Sign in to your Account." : "Create a new account to get started."}
+          </p>
+
+          {unauthorized ? (
+            <p className="mb-[0.65rem] w-full rounded-[6px] border border-[#b3261e]/40 bg-[#b3261e]/10 px-[0.85rem] py-[0.65rem] text-[0.8rem] text-[#ff9d90]">
+              That account isn&apos;t registered as an admin yet. Ask a Super Admin to grant access, then sign in again.
+            </p>
+          ) : null}
+          {state.error ? (
+            <p className="mb-[0.65rem] w-full rounded-[6px] border border-[#b3261e]/40 bg-[#b3261e]/10 px-[0.85rem] py-[0.65rem] text-[0.8rem] text-[#ff9d90]" role="alert">
+              {state.error}
+            </p>
+          ) : null}
+          {state.info ? (
+            <p className="mb-[0.65rem] w-full rounded-[6px] border border-[#333] bg-white/5 px-[0.85rem] py-[0.65rem] text-[0.8rem] text-[#ccc]" role="status">
+              {state.info}
+            </p>
+          ) : null}
+
+          <form action={formAction} className="flex w-full flex-col gap-[0.65rem]">
+            <input type="hidden" name="next" value={next ?? ""} />
+            {!isLogin ? <input className={inputClass} type="text" name="name" placeholder="Full Name" required /> : null}
+            <input className={inputClass} type="email" name="email" autoComplete="email" placeholder="name@work-email.com" required />
+            <input
+              className={inputClass}
+              type="password"
+              name="password"
+              autoComplete={isLogin ? "current-password" : "new-password"}
+              placeholder="Password"
+              required
+              minLength={isLogin ? undefined : 8}
+            />
+            <button type="submit" disabled={pending} className={submitButtonClass}>
+              {pending ? "…" : isLogin ? "Sign In" : "Create Account"}
+            </button>
+          </form>
+
+          <div className="mt-5 text-sm text-[#888]">
+            {isLogin ? (
+              <>
+                Don&apos;t have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setIsLogin(false)}
+                  className="cursor-pointer border-none bg-transparent p-0 font-medium text-white hover:underline"
+                >
+                  Sign Up
+                </button>
+              </>
+            ) : (
+              <>
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setIsLogin(true)}
+                  className="cursor-pointer border-none bg-transparent p-0 font-medium text-white hover:underline"
+                >
+                  Sign In
+                </button>
+              </>
+            )}
+          </div>
+          <Footer />
+        </div>
       </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete={mode === "signin" ? "current-password" : "new-password"}
-          required
-          minLength={mode === "signup" ? 8 : undefined}
-        />
-      </div>
-
-      {state.error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {state.error}
-        </p>
-      ) : null}
-      {state.info ? (
-        <p className="text-sm text-muted-foreground" role="status">
-          {state.info}
-        </p>
-      ) : null}
-
-      <Button type="submit" className="w-full" disabled={pending}>
-        {pending ? (
-          <Loader2 className="size-4 animate-spin" />
-        ) : mode === "signin" ? (
-          "Sign in"
-        ) : (
-          "Create account"
-        )}
-      </Button>
-
-      <button
-        type="button"
-        onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-        className="w-full text-center text-sm text-muted-foreground hover:text-foreground"
-      >
-        {mode === "signin"
-          ? "Need an account? Create one"
-          : "Already have an account? Sign in"}
-      </button>
-    </form>
-  );
-}
-
-export function LoginForm({ next }: { next?: string }) {
-  return (
-    <div className="space-y-6">
-      <GoogleButton next={next} />
-      <div className="flex items-center gap-3">
-        <Separator className="flex-1" />
-        <span className="text-xs uppercase tracking-wide text-muted-foreground">or</span>
-        <Separator className="flex-1" />
-      </div>
-      <PasswordForm next={next} />
     </div>
   );
 }

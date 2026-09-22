@@ -42,3 +42,6 @@ next-env.d.ts
 
 # local source videos; web-ready copies live in public/videos
 /LC UOCA Site/*.mp4
+
+# impeccable skill scratch/critique cache
+/.impeccable/

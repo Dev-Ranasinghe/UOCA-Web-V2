@@ -673,6 +673,20 @@ html.preloader-lock {
   }
 }
 
+/* Browser autofill doesn't reliably flip :placeholder-shown, so CSS-only floating labels (peer-placeholder-shown)
+   miss it. Binding a no-op animation to :-webkit-autofill fires an animationstart event the instant a field is
+   autofilled, which JS can listen for — the standard, reliable way to detect autofill. Purely a detection hook:
+   it has no visual effect anywhere else. */
+@keyframes autofill-detect {
+  from {}
+  to {}
+}
+
+input:-webkit-autofill {
+  animation-name: autofill-detect;
+  animation-duration: 1ms;
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
