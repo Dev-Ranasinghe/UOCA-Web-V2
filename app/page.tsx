@@ -5,7 +5,6 @@ import PostCard from "@/components/PostCard";
 import AsciiEffectCanvas, { AsciiEffectConfig } from "@/components/AsciiEffectCanvas";
 import NewsletterStamp from "@/components/NewsletterStamp";
 import Ticker from "@/components/Ticker";
-import PresidentQuote from "@/components/PresidentQuote";
 import WatchSection from "@/components/WatchSection";
 import HappeningNowSection from "@/components/HappeningNowSection";
 import Footer from "@/components/Footer";
@@ -14,31 +13,34 @@ import Testimonials from "@/components/Testimonials";
 import FaqSection from "@/components/FaqSection";
 import CommunityFloating from "@/components/CommunityFloating";
 import StackSpread from "@/components/ui/stack-spread";
-import MarqueeAlongSvgPath from "@/components/ui/marquee-along-svg-path";
+import { FilmstripGallery, type FilmstripImage } from "@/components/ui/filmstrip-gallery";
+import { FilmEdge } from "@/components/ui/film-edge";
+import { StatsCollage } from "@/components/ui/stats-collage";
 import { prisma } from "@/lib/prisma";
 import { getHappeningNow } from "@/lib/happening-now";
 
-// Placeholder images until real community photos are ready.
-// Square crops (w=h) so each tile renders as a square, matching the
-// component's original reference demo.
-const marqueeImages = [
-  "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=400&h=400&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=400&h=400&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=400&h=400&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=400&h=400&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=400&h=400&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=400&h=400&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?q=80&w=400&h=400&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1518837695005-2083093ee35b?q=80&w=400&h=400&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=400&h=400&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1504893524553-b855bce32c67?q=80&w=400&h=400&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=400&h=400&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?q=80&w=400&h=400&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=400&h=400&auto=format&fit=crop",
+// Photographs from the club's own roll (LC UOCA Site/Dump Pics), resized into public/images/gallery:
+// "-sm" files feed the strip, the full files open as the print.
+const g = (name: string) => ({ src: `/images/gallery/${name}.jpg`, thumb: `/images/gallery/${name}-sm.jpg` });
+const galleryImages: FilmstripImage[] = [
+  { ...g("dsc04463"), alt: "Four Leos in black suits and blue ties, smiling under a tree", caption: "Four ties, one colour" },
+  { ...g("dsc04282"), alt: "Members chatting and laughing around an outdoor table, one checking a phone", caption: "Waiting for the photographer" },
+  { ...g("dsc04304"), alt: "A Leo in a blue saree and a Leo in a black shirt posing on a wet road", caption: "After the rain, before the photos" },
+  { ...g("dsc04323"), alt: "Three members seen from behind, arms linked at the waist", caption: "Arm in arm, backs to the camera" },
+  { ...g("dsc04343"), alt: "Members in blue sarees laughing as one hides her face under her saree", caption: "One of us was not ready" },
+  { ...g("dsc04377"), alt: "Three members in suits clowning around a small signpost at the foot of a tree", caption: "Thumbs up at the signpost" },
+  { ...g("dsc04389"), alt: "A member in a blue saree kneels to offer a leaf to another, a colonnaded hall behind them", caption: "A leaf, offered on one knee" },
+  { ...g("dsc04370"), alt: "One member in a suit carrying another in his arms across a wet road", caption: "Carried off set" },
+  { ...g("dsc04395"), alt: "Members in suits laughing and pretending to push a friend into a pond", caption: "Nobody went in. Nearly." },
+  { ...g("dsc04409"), alt: "Nine members in matching blue sarees standing in a row under the trees", caption: "Nine sarees, one blue" },
+  { ...g("dsc04344"), alt: "A group in blue sarees stands behind members crouching in hoodies and suits", caption: "The whole crew, hoods up" },
+  { ...g("dsc04411"), alt: "A member in a pin-covered black blazer looks down and smiles", caption: "Every pin a story" },
+  { ...g("dsc04418"), alt: "Members gathered in a circle on a wet road, one holding an umbrella", caption: "The huddle before the shoot" },
+  { ...g("dsc04406"), alt: "Four members pulling faces and striking poses on a path beside a pond", caption: "Serious photo, attempt four" },
+  { ...g("dsc04430"), alt: "Two members in grey suits with hands pressed together as if praying", caption: "Please, one more take", position: "50% 22%" },
+  { ...g("dsc04523"), alt: "Six members standing together on the grass, one crouching in front", caption: "Six, and one crouching" },
+  { ...g("dsc04299"), alt: "Four Leos in black suits standing together under the trees", caption: "Same four, last frame" },
 ];
-
-const marqueePath =
-  "M1 209.434C58.5872 255.935 387.926 325.938 482.583 209.434C600.905 63.8051 525.516 -43.2211 427.332 19.9613C329.149 83.1436 352.902 242.723 515.041 267.302C644.752 286.966 943.56 181.94 995 156.5";
 
 const heroAsciiConfig: AsciiEffectConfig = {
   pfx: {
@@ -238,44 +240,72 @@ export default async function HomePage() {
         <HappeningNowSection items={happeningNow} />
       </>
 
-      {/* Community Spotlight Section (Dark Theme Full Width, Placeholder) */}
-      <section className="section-dark w-full bg-black border-t border-b border-[#222]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-white text-center">
-            [Placeholder Section Title]
-          </h2>
-        </div>
+      {/* Behind the scenes: the team's photos on an endless, self-advancing film strip (dark, full width) */}
+      <section className="section-dark relative w-full bg-black text-white">
+        {/* Film-roll rims where the section meets the light ones above and below; the page shows through the holes. */}
+        <FilmEdge side="top" />
+        <FilmEdge side="bottom" />
+        <div className="page-container">
+          <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
+            <p className="mb-4 font-mono text-xs font-bold tracking-wider text-[#a3a3a3]">[BEHIND THE SCENES]</p>
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance text-white">
+              Caught between takes
+            </h2>
+            <p className="mt-4 max-w-lg font-sans text-base text-pretty text-[#bdbdbd]">
+              The frames that never made the official album: the huddles, the retakes and one near miss by the pond.
+            </p>
+          </div>
 
-        <div className="w-full h-[320px] sm:h-[420px] mt-10 overflow-hidden">
-          <MarqueeAlongSvgPath
-            path={marqueePath}
-            viewBox="0 0 996 330"
-            baseVelocity={8}
-            slowdownOnHover
-            draggable
-            repeat={2}
-            dragSensitivity={0.1}
-            className="w-full h-full scale-105"
-            responsive
-            grabCursor
-          >
-            {marqueeImages.map((src, i) => (
-              <div
-                key={i}
-                className="w-14 h-full hover:scale-150 duration-300 ease-in-out"
-              >
-                <img
-                  src={src}
-                  alt={`Community highlight ${i + 1}`}
-                  className="w-full h-full object-cover"
-                  draggable={false}
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-            ))}
-          </MarqueeAlongSvgPath>
+          <SectionDivider dark spaced />
+
+          <FilmstripGallery
+            images={galleryImages}
+            defaultIndex={6}
+            aria-label="Behind-the-scenes photographs of the team"
+            frameWidth="clamp(200px, 58vw, 300px)"
+            aspect="3 / 2"
+            speed={0.75}
+            film="UOCA · 35MM · ISO 400"
+            stripColor="#1c1916"
+            inkColor="#eae7e1"
+            gateColor="#ef671c"
+            holeColor="#000000"
+          />
         </div>
+      </section>
+
+      {/* UOCA in numbers: editorial collage. Placeholder figures and thumbnails until the real ones are confirmed. */}
+      <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <StatsCollage
+          lead={{
+            value: "10+",
+            label: "Years of Service",
+            description: "A decade of Leos turning shared passion into projects that outlast a single term.",
+          }}
+          photo={{ src: "/images/stats-group.jpg", alt: "Club members in sarees and suits gathered on a wet road, one holding an umbrella" }}
+          panel={{ src: "/images/impact/club-medal.webp", alt: "The club's 2026/27 presidential medal" }}
+          stats={[
+            {
+              value: "120+",
+              label: "Projects",
+              description: "Ideas in action. From local initiatives to lasting impact.",
+              image: { src: "/images/impact/lamp-lighting.webp", alt: "Lighting the traditional oil lamp at a club event" },
+            },
+            {
+              value: "25",
+              label: "Awards",
+              description: "Recognised for our commitment to service and excellence.",
+              image: { src: "/images/impact/runners-up.webp", alt: "Members receiving a runners-up award on stage" },
+              tall: true,
+            },
+            {
+              value: "40",
+              label: "Members",
+              description: "A diverse team united by one purpose.",
+              image: { src: "/images/impact/members.webp", alt: "Two members in suits and blue ties" },
+            },
+          ]}
+        />
       </section>
 
       <>
@@ -323,9 +353,6 @@ export default async function HomePage() {
 
       {/* Watch Section (Dark Theme Full Width) */}
       <WatchSection />
-
-      {/* President Quote / Founder Feature */}
-      <PresidentQuote />
 
       {/* Full-width Ad Banner */}
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
